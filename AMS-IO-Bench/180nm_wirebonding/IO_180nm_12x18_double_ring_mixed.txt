@@ -9,7 +9,7 @@ Task: Generate IO ring schematic and layout design for Cadence Virtuoso.
   ======================================================================
   SIGNAL CONFIGURATION
   ======================================================================
-  Signal names: IB0 IB1 IB2 IB3 IB4 IB5 IB6 IB7 VDDGM VSSGM VCMGM VDDA09 VSSA VDDA18 VCM GND VIP VIN GND VCM09 D1 D2 D3 D4 D5 D6 D7 D8 D9 D10 D11 D12 D13 CLKO SLP RST SCK SDI SDO VIOH VIOL GIOH GIOL VAMP IBIAS IBIAS2 VREFIB VREFIB2. Additionally, please insert an inner ring pad D14 between D13 and D12, insert an inner ring pad MARKER between D12 and D11. Voltage domains: Digital domain uses VIOH, GIOH, VIOL, GIOL as voltage domain. Analog signals use analog domain voltage domain (VDDGM/VSSGM)
+  Signal names: IB0 IB1 IB2 IB3 IB4 IB5 IB6 IB7 VDDGM VSSGM VCMGM VDDA09 VSSA VDDA18 VCM GND VIP VIN GND VCM09 D1 D2 D3 D4 D5 D6 D7 D8 D9 D10 D11 D12 D13 CLKO SLP RST SCK SDI SDO VIOH VIOL GIOH GIOL VAMP IBIAS IBIAS2 VREFIB VREFIB2. Additionally, please insert an inner ring pad D14 between D13 and D12. Voltage domains: Digital domain uses VIOH, GIOH, VIOL, GIOL as voltage domain. Analog signals use analog domain voltage domain (VDDGM/VSSGM)
 
 
   ======================================================================

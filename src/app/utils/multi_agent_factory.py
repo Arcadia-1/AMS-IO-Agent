@@ -15,6 +15,13 @@ from .agent_factory import create_model, get_tools_for_agent
 from .agent_utils import TokenLimitedCodeAgent
 from .custom_logger import MinimalOutputLogger
 
+# Import default tools from smolagents
+try:
+    from smolagents.default_tools import UserInputTool
+except ImportError:
+    # Fallback if default_tools is not available
+    UserInputTool = None
+
 
 def create_cdac_worker_agent(model_config):
     """
@@ -315,6 +322,10 @@ def create_master_agent_with_workers(model_config, tools_config_path="config/too
     """
     # Load standard tools for master agent
     standard_tools = get_tools_for_agent(tools_config_path)
+    
+    # Add default tools from smolagents (like user_input)
+    if UserInputTool is not None:
+        standard_tools.append(UserInputTool())
     
     # Create CDAC worker agent (with name and description)
     cdac_worker = create_cdac_worker_agent(model_config)

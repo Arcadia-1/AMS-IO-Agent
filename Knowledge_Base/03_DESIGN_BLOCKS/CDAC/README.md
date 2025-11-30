@@ -6,7 +6,7 @@ This directory contains a modularized knowledge base for capacitor design automa
 
 This knowledge base provides structured knowledge modules for automated capacitor design, including:
 - Universal design principles and workflows
-- Shape-specific capacitor structures (H-shape, U-shape, C-shape, etc.)
+- Shape-specific capacitor structures (H-shape, I-type, Sandwich, etc.)
 - Technology-specific process parameters (180nm, 28nm, etc.)
 - Initial parameter sets for shape-technology combinations
 
@@ -49,4 +49,3 @@ When adding new modules:
 - Add technology configs to `Technology_Configs/`
 - Initial parameters are synthesized automatically in Phase 1 based on structure rules and technology constraints (see `01_Workflow_Framework.md`)
 - Update `KB_INDEX.md` with new combinations
-

@@ -31,11 +31,11 @@ Each technology configuration file defines:
 - Metal layer restrictions
 - Constraint validation rules
 
-**Note**: Initial parameters are synthesized in Phase 1 from structure rules and technology constraints.
+Note: Initial parameters are synthesized in Phase 1 from structure rules and technology constraints.
 
 ## Technology Configuration Interface
 
-**IMPORTANT**: All technology configurations must implement the interface defined in `INTERFACE_SPEC.md`. This ensures:
+All technology configurations must implement the interface defined in `INTERFACE_SPEC.md`. This ensures:
 - Consistent parameter names across all technologies
 - Shape modules can reliably access required parameters
 - Validation rules are clear and enforceable
@@ -49,7 +49,7 @@ See `INTERFACE_SPEC.md` for:
 ## Adding New Technologies
 
 To add a new technology node:
-1. **Read `INTERFACE_SPEC.md` first** - Understand the required interface contract
+1. Read `INTERFACE_SPEC.md` first - Understand the required interface contract
 2. Create `[TECHNOLOGY]nm_Technology.md` following the interface specification
 3. Verify all required parameters are defined (use checklist in INTERFACE_SPEC.md)
 4. Update this INDEX.md with the new technology entry
@@ -57,6 +57,5 @@ To add a new technology node:
 
 ## Related Documents
 
-- **INTERFACE_SPEC.md** - Technology configuration interface specification (**required reading**)
+- **INTERFACE_SPEC.md** - Technology configuration interface specification (required reading)
 - **KB_INDEX.md** - Main knowledge base index with module combinations
-

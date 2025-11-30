@@ -20,8 +20,14 @@ else
     cd $CURPWD
 endif
 
-# Project root is parent of scripts directory
-set PROJECT_ROOT = "`dirname $SCRIPT_DIR`"
+# Project root: go up from script directory until we find .env file
+# Script is at: src/scripts/calibre/T28/run_pex_T28.csh
+# So we need to go up 4 levels: T28 -> calibre -> scripts -> src -> project root
+set PROJECT_ROOT = "$SCRIPT_DIR"
+set PROJECT_ROOT = "`dirname $PROJECT_ROOT`"  # T28 -> calibre
+set PROJECT_ROOT = "`dirname $PROJECT_ROOT`"   # calibre -> scripts
+set PROJECT_ROOT = "`dirname $PROJECT_ROOT`"  # scripts -> src
+set PROJECT_ROOT = "`dirname $PROJECT_ROOT`"  # src -> project root
 
 # Check input arguments
 if ( $#argv < 2 || $#argv > 4 ) then
@@ -55,7 +61,7 @@ set layerMapFile = "/home/process/tsmc28n/PDK_mmWave/iPDK_CRN28HPC+ULL_v1.8_2p2a
 set logFile = "PIPO.LOG.${topCell}"
 set summaryFile = "PIPO.SUM.${topCell}"
 set strmFile = "${topCell}.calibre.db"
-set calibreRuleFile = "$PROJECT_ROOT/scripts/_calibre_28.rcx_"
+set calibreRuleFile = "$PROJECT_ROOT/src/scripts/calibre/T28/_calibre_T28.rcx_"
 # Determine cds.lib location: strictly require CDS_LIB_PATH in project .env (no defaults, no env fallback)
 if (-f "$PROJECT_ROOT/.env") then
     set cds_from_env = `grep -E "^CDS_LIB_PATH=" $PROJECT_ROOT/.env | sed -e 's/^CDS_LIB_PATH=//'`

@@ -10,6 +10,20 @@ Options:
     -r, --run           Run PEX extraction
     -a, --all           Show design information and run PEX (default behavior)
     -q, --quiet         Quiet mode, only show error messages
+    --lib LIB           Target library name (optional)
+    --cell CELL         Target cell name (optional)
+    --view VIEW         Target view name (default: layout)
+    --tech TECH         Technology node: T28 or T180 (default: T28)
+
+Examples:
+    # Run PEX on specific design with T28
+    python test_pex_runner_tool.py --lib LLM_Layout_Design --cell test1 --tech T28
+    
+    # Run PEX on specific design with T180
+    python test_pex_runner_tool.py --lib LLM_Layout_Design --cell test1 --tech T180
+    
+    # Show help
+    python test_pex_runner_tool.py --help
 """
 
 import sys
@@ -43,14 +57,14 @@ def show_design_info(quiet=False, lib=None, cell=None, view="layout"):
         print(f"View: {view2}")
     return True
 
-def run_pex_flow(quiet=False, lib=None, cell=None, view="layout"):
+def run_pex_flow(quiet=False, lib=None, cell=None, view="layout", tech_node="T28"):
     """Run PEX extraction"""
     if not quiet:
         print("\n2. Running PEX extraction:")
     if lib and cell:
-        result = run_pex(lib=lib, cell=cell, view=view)
+        result = run_pex(lib=lib, cell=cell, view=view, tech_node=tech_node)
     else:
-        result = run_pex()
+        result = run_pex(tech_node=tech_node)
     print(result)
     
     # Check if PEX execution failed
@@ -68,6 +82,7 @@ def main():
     parser.add_argument('--lib', dest='lib', default=None, help='Target library name to run on (optional)')
     parser.add_argument('--cell', dest='cell', default=None, help='Target cell name to run on (optional)')
     parser.add_argument('--view', dest='view', default='layout', help='Target view name (default: layout)')
+    parser.add_argument('--tech', dest='tech_node', default='T28', choices=['T28', 'T180'], help='Technology node (default: T28)')
     args = parser.parse_args()
     # If no options are specified, execute all steps by default
     if not (args.info or args.run or args.all):
@@ -81,7 +96,7 @@ def main():
     # Run PEX extraction
     if args.run or args.all:
         if success:  # Only run PEX if design information is successfully obtained
-            success = run_pex_flow(args.quiet, lib=args.lib, cell=args.cell, view=args.view) and success
+            success = run_pex_flow(args.quiet, lib=args.lib, cell=args.cell, view=args.view, tech_node=args.tech_node) and success
     if not args.quiet:
         if success:
             print("\n✅ Test completed!")

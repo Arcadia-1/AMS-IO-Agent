@@ -145,5 +145,9 @@ knowledge_base/*.md
 # Claude instructions (personal notes)
 claude_read.md
 
+# Personal notes and TODO files (not for version control)
+TODO.md
+修改记录.md
+
 # logs files
 logs/

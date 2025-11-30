@@ -40,8 +40,14 @@ else
     cd $CURPWD
 endif
 
-# Project root and variables
-set PROJECT_ROOT = "`dirname $SCRIPT_DIR`"
+# Project root: go up from script directory until we find .env file
+# Script is at: src/scripts/calibre/T28/run_drc_T28.csh
+# So we need to go up 4 levels: T28 -> calibre -> scripts -> src -> project root
+set PROJECT_ROOT = "$SCRIPT_DIR"
+set PROJECT_ROOT = "`dirname $PROJECT_ROOT`"  # T28 -> calibre
+set PROJECT_ROOT = "`dirname $PROJECT_ROOT`"   # calibre -> scripts
+set PROJECT_ROOT = "`dirname $PROJECT_ROOT`"  # scripts -> src
+set PROJECT_ROOT = "`dirname $PROJECT_ROOT`"  # src -> project root
 
 # Define other variables
 set runDir = "$PROJECT_ROOT/output/drc"
@@ -63,7 +69,7 @@ else
     echo "Error: $PROJECT_ROOT/.env not found. Please create it and set CDS_LIB_PATH=/absolute/path/to/cds.lib"
     exit 1
 endif
-set drcRuleFile = "$PROJECT_ROOT/scripts/_drc_rule_T28_cell_"
+set drcRuleFile = "$PROJECT_ROOT/src/scripts/calibre/T28/_drc_rule_T28_cell_"
 set tmpRuleFile = "_drc_rule_T28_cell_tmp"
 
 # Set environment variables

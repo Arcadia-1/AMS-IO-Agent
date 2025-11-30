@@ -11,14 +11,14 @@ class Tee(object):
     def write(self, obj):
         for f in self.files:
             try:
-                # 确保所有输出都使用 UTF-8 编码
+                # Ensure all output uses UTF-8 encoding
                 if isinstance(obj, str):
-                    # 如果文件是文本模式但编码不匹配，尝试编码转换
+                    # If file is text mode but encoding doesn't match, try encoding conversion
                     if hasattr(f, 'encoding') and f.encoding:
                         try:
                             f.write(obj)
                         except UnicodeEncodeError:
-                            # 如果编码失败，使用 errors='replace' 处理
+                            # If encoding fails, use errors='replace' to handle
                             encoded = obj.encode(f.encoding, errors='replace').decode(f.encoding)
                             f.write(encoded)
                     else:
@@ -27,14 +27,14 @@ class Tee(object):
                     f.write(obj)
                 f.flush()
             except (UnicodeEncodeError, AttributeError) as e:
-                # 如果仍然失败，尝试替换无法编码的字符
+                # If still fails, try replacing unencodable characters
                 try:
                     if isinstance(obj, str):
                         safe_obj = obj.encode('utf-8', errors='replace').decode('utf-8')
                         f.write(safe_obj)
                         f.flush()
                 except Exception:
-                    # 最后的后备方案：跳过无法编码的字符
+                    # Final fallback: skip unencodable characters
                     pass
     
     def flush(self):

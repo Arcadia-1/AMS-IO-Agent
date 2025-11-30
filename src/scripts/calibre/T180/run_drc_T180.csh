@@ -40,7 +40,7 @@ set layerMapFile = "/home/process/tsmc180bcd_gen2_2022/PDK/TSMC180BCD/tsmc18/tsm
 set logFile = "PIPO.LOG.${topCell}"
 set summaryFile = "PIPO.SUM.${topCell}"
 set strmFile = "${topCell}.calibre.db"
-set drcRuleFile = "$PROJECT_ROOT/scripts/_drc_rule_T180_cell_"
+set drcRuleFile = "$PROJECT_ROOT/src/scripts/calibre/T180/_drc_rule_T180_cell_"
 set tmpRuleFile = "_drc_rule_180_tmp"
 
 # Set environment variables
@@ -63,7 +63,14 @@ else
     set SCRIPT_DIR = "`pwd`"
     cd $CURPWD
 endif
-set PROJECT_ROOT = "`dirname $SCRIPT_DIR`"
+# Project root: go up from script directory until we find .env file
+# Script is at: src/scripts/calibre/T180/run_drc_T180.csh
+# So we need to go up 4 levels: T180 -> calibre -> scripts -> src -> project root
+set PROJECT_ROOT = "$SCRIPT_DIR"
+set PROJECT_ROOT = "`dirname $PROJECT_ROOT`"  # T180 -> calibre
+set PROJECT_ROOT = "`dirname $PROJECT_ROOT`"   # calibre -> scripts
+set PROJECT_ROOT = "`dirname $PROJECT_ROOT`"  # scripts -> src
+set PROJECT_ROOT = "`dirname $PROJECT_ROOT`"  # src -> project root
 if (-f "$PROJECT_ROOT/.env") then
     set cds_from_env = `grep -E "^CDS_LIB_PATH_180=" $PROJECT_ROOT/.env | sed -e 's/^CDS_LIB_PATH_180=//'`
     if ("$cds_from_env" != "") then

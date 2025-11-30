@@ -16,15 +16,15 @@ import time
 
 
 def test_basic_tracking():
-    """测试基础追踪功能"""
+    """Test basic tracking functionality"""
     print("=" * 60)
     print("Test 1: Basic Tracking")
     print("=" * 60)
     
     tracker = ToolUsageTracker(stats_file="logs/test_tool_stats.json")
     
-    # 模拟一些工具调用
-    print("\n模拟工具调用...")
+    # Simulate some tool calls
+    print("\nSimulating tool calls...")
     tracker.track_call("run_il_file", True, 1.2)
     tracker.track_call("run_il_file", True, 1.5)
     tracker.track_call("run_il_file", False, 0.8, "File not found")
@@ -36,8 +36,8 @@ def test_basic_tracking():
     tracker.track_call("load_domain_knowledge", True, 0.5)
     tracker.track_call("load_domain_knowledge", False, 0.4, "Domain not found")
     
-    # 获取统计
-    print("\n获取 run_il_file 统计:")
+    # Get statistics
+    print("\nGetting run_il_file statistics:")
     stats = tracker.get_tool_stats("run_il_file")
     print(f"  Total calls: {stats['total_calls']}")
     print(f"  Success rate: {stats['success_rate']}")
@@ -47,7 +47,7 @@ def test_basic_tracking():
 
 
 def test_top_tools():
-    """测试获取最常用工具"""
+    """Test getting most used tools"""
     print("\n" + "=" * 60)
     print("Test 2: Top Tools")
     print("=" * 60)
@@ -65,7 +65,7 @@ def test_top_tools():
 
 
 def test_problematic_tools():
-    """测试问题工具检测"""
+    """Test problematic tool detection"""
     print("\n" + "=" * 60)
     print("Test 3: Problematic Tools")
     print("=" * 60)
@@ -85,7 +85,7 @@ def test_problematic_tools():
 
 
 def test_report_generation():
-    """测试报告生成"""
+    """Test report generation"""
     print("\n" + "=" * 60)
     print("Test 4: Report Generation")
     print("=" * 60)
@@ -99,7 +99,7 @@ def test_report_generation():
 
 
 def test_decorator():
-    """测试装饰器"""
+    """Test decorator"""
     print("\n" + "=" * 60)
     print("Test 5: Decorator")
     print("=" * 60)
@@ -111,23 +111,23 @@ def test_decorator():
             raise ValueError("Test error")
         return "Success"
     
-    # 成功调用
-    print("\n调用 test_function (成功)...")
+    # Successful call
+    print("\nCalling test_function (success)...")
     result = test_function(False)
     print(f"Result: {result}")
     
-    # 失败调用
-    print("\n调用 test_function (失败)...")
+    # Failed call
+    print("\nCalling test_function (failure)...")
     try:
         test_function(True)
     except ValueError:
         print("Caught expected error")
     
-    # 检查统计
+    # Check statistics
     from src.app.utils.tool_usage_tracker import get_tracker
     tracker = get_tracker()
     stats = tracker.get_tool_stats("test_function")
-    print(f"\ntest_function 统计:")
+    print(f"\ntest_function statistics:")
     print(f"  Total calls: {stats['total_calls']}")
     print(f"  Success rate: {stats['success_rate']}")
     

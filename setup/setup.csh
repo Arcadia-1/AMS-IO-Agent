@@ -1,22 +1,21 @@
 #!/bin/csh -f
-# AMS-IO-Agent 自动化配置脚本 (csh版本)
 # Auto Setup Script for AMS-IO-Agent (csh)
-# 作者: AMS-IO-Agent Team
-# 版本: 2.0.0 - 模块化版本
+# Author: AMS-IO-Agent Team
+# Version: 2.0.0 - Modular version
 
-# 设置错误时退出
+# Exit on error
 set exit_on_error
 
-# 日志函数
+# Logging functions
 alias print_info 'echo "[INFO]" \!*'
 alias print_success 'echo "[SUCCESS]" \!*'
 alias print_error 'echo "[ERROR]" \!*'
 
-# 获取项目根目录（脚本在 setup/ 子目录中）
+# Get project root directory (script is in setup/ subdirectory)
 set CURPWD = `pwd`
 set SCRIPT_DIR = `dirname $0`
 
-# 获取脚本所在目录的绝对路径
+# Get absolute path of script directory
 if ("$SCRIPT_DIR" == ".") then
     set SCRIPT_ABS = "$CURPWD"
 else
@@ -25,7 +24,7 @@ else
     cd $CURPWD
 endif
 
-# 项目根目录是脚本目录的上一级（因为脚本在 setup/ 中）
+# Project root is parent of script directory (since script is in setup/)
 cd "$SCRIPT_ABS/.."
 set PROJECT_ROOT = "`pwd`"
 cd $CURPWD
@@ -44,111 +43,169 @@ main:
 
 check_requirements:
     if (`uname -s` != "Linux") then
-        print_error "仅支持 Linux 系统，当前系统: `uname -s`"
+        print_error "Only Linux is supported, current system: `uname -s`"
         exit 1
     endif
     
     if (`which git` == "") then
-        print_error "未检测到 Git，请先安装"
+        print_error "Git not detected, please install it first"
         exit 1
     endif
     
-    print_success "系统检查 [✓ Linux] [✓ Git]"
+    print_success "System check [✓ Linux] [✓ Git]"
     goto install_uv
 
 install_uv:
     if (`which uv` != "") then
-        print_info "[uv] 已安装"
+        print_info "[uv] Already installed"
         goto create_venv
     endif
     
-    print_info "[uv] 正在安装..."
+    print_info "[uv] Installing..."
     curl -LsSf https://astral.sh/uv/install.sh | sh
     setenv PATH "$HOME/.cargo/bin:$PATH"
     echo 'setenv PATH "$HOME/.cargo/bin:$PATH"' >> ~/.cshrc
-    print_success "[uv] 安装完成"
+    print_success "[uv] Installation complete"
     goto create_venv
 
 create_venv:
     if (-d ".venv") then
-        print_info "[venv] 已存在"
+        print_info "[venv] Already exists"
         goto install_dependencies
     endif
     
-    print_info "[venv] 创建 Python 3.11..."
+    print_info "[venv] Creating Python 3.11..."
     uv venv --python 3.11.11 .venv
-    print_success "[venv] 创建完成"
+    print_success "[venv] Creation complete"
     goto install_dependencies
 
 install_dependencies:
     if (! -f ".venv/bin/activate.csh") then
-        print_error "[venv] 激活脚本不存在"
+        print_error "[venv] Activation script not found"
         exit 1
     endif
     
     source .venv/bin/activate.csh
     
     if (! -f "requirements.txt") then
-        print_error "[依赖] requirements.txt 未找到"
+        print_error "[dependencies] requirements.txt not found"
         exit 1
     endif
     
-    print_info "[依赖] 安装 Python 包..."
+    print_info "[dependencies] Installing Python packages..."
     uv pip install -r requirements.txt
-    print_success "[依赖] 安装完成"
+    print_success "[dependencies] Installation complete"
     goto setup_utf8_env
 
 setup_utf8_env:
     echo ""
-    print_info "[UTF-8] 配置编码环境变量..."
+    print_info "[UTF-8] Configuring encoding environment variables..."
     
-    # 检查 ~/.cshrc 是否已包含 UTF-8 配置
+    # Check if ~/.cshrc already contains UTF-8 configuration
     set utf8_marker = "# AMS-IO-Agent UTF-8 Encoding Setup"
     if (`grep -c "$utf8_marker" ~/.cshrc` == 0) then
-        # 追加到 ~/.cshrc
+        # Append to ~/.cshrc
         echo "" >> ~/.cshrc
         echo "$utf8_marker" >> ~/.cshrc
         echo "setenv PYTHONIOENCODING utf-8" >> ~/.cshrc
         echo "setenv LC_ALL en_US.UTF-8" >> ~/.cshrc
         echo "setenv LANG en_US.UTF-8" >> ~/.cshrc
-        print_success "[UTF-8] 已添加到 ~/.cshrc，所有新 csh 会话将自动启用"
+        print_success "[UTF-8] Added to ~/.cshrc, all new csh sessions will automatically enable UTF-8"
     else
-        print_info "[UTF-8] 配置已存在，跳过"
+        print_info "[UTF-8] Configuration already exists, skipping"
     endif
     
-    # 在当前会话中立即生效
+    # Apply to current session immediately
     setenv PYTHONIOENCODING utf-8
     setenv LC_ALL en_US.UTF-8
     setenv LANG en_US.UTF-8
-    print_success "[UTF-8] 当前会话已启用"
+    print_success "[UTF-8] Current session enabled"
     goto generate_env_config
 
 generate_env_config:
     echo ""
-    print_info "[1/2] 生成 .env 配置..."
+    print_info "[1/2] Generating .env configuration..."
     $PROJECT_ROOT/setup/generate_env_config.csh
     goto generate_virtuoso_setup
 
 generate_virtuoso_setup:
     echo ""
-    print_info "[2/2] 生成 virtuoso_setup.il..."
+    print_info "[2/2] Generating virtuoso_setup.il..."
     
-    # Bridge 类型选择（默认: RAMIC Bridge 跨服务器推荐，修改为 2 使用 skillbridge 同服务器）
+    # Bridge type selection (default: RAMIC Bridge for cross-server, change to 2 for skillbridge same-server)
     set bridge_choice = "1"
     
+    # Initialize virtuoso_setup status (0 = success, 1 = failed)
+    set virtuoso_setup_status = 0
+    
+    # Store bridge type and setup file path for final message
+    set bridge_type = ""
+    set virtuoso_setup_path = ""
+    
     if ("$bridge_choice" == "1") then
+        set bridge_type = "RAMIC"
         $PROJECT_ROOT/setup/generate_virtuoso_ramicbridge.csh
+        set gen_status = $status
+        if ($gen_status == 0) then
+            set virtuoso_setup_path = "$PROJECT_ROOT/virtuoso_setup.il"
+        endif
     else
+        set bridge_type = "skillbridge"
         $PROJECT_ROOT/setup/generate_virtuoso_skillbridge.csh
+        set gen_status = $status
+        if ($gen_status == 0) then
+            set virtuoso_setup_path = "$PROJECT_ROOT/virtuoso_setup.il"
+        endif
+    endif
+    
+    # Check if generation failed
+    if ($gen_status != 0) then
+        print_error "Failed to generate virtuoso_setup.il (exit code: $gen_status)"
+        print_info "You can manually configure Virtuoso bridge later"
+        set virtuoso_setup_status = 1
+        # Continue anyway - virtuoso_setup.il is optional
     endif
     
     goto show_completion_info
 
 show_completion_info:
-    print_success "配置完成 [✓ venv] [✓ 依赖] [✓ UTF-8] [✓ .env] [✓ virtuoso_setup.il]"
+    # Build completion message based on virtuoso_setup status
+    if ($virtuoso_setup_status == 0) then
+        print_success "Setup complete [✓ venv] [✓ dependencies] [✓ UTF-8] [✓ .env] [✓ virtuoso_setup.il]"
+    else
+        print_success "Setup complete [✓ venv] [✓ dependencies] [✓ UTF-8] [✓ .env] [✗ virtuoso_setup.il]"
+    endif
     echo ""
-    echo "[后续] 1) [.env] 填入配置  2) 查看virtuoso_setup.il  3) source .venv/bin/activate.csh"
-    echo "[UTF-8] 已添加到 ~/.cshrc，所有新 csh 会话将自动启用 UTF-8 编码"
+    echo "Next steps:"
+    echo "  1. Edit .env file to add your API keys:"
+    echo "     nano .env"
+    echo ""
+    echo "  2. Configure config.yaml (optional):"
+    echo "     nano config.yaml"
+    echo ""
+    if ($virtuoso_setup_status == 0 && "$virtuoso_setup_path" != "") then
+        echo "  3. Setup Virtuoso bridge:"
+        if ("$bridge_type" == "RAMIC") then
+            echo "     a) For cross-server connection, set up SSH port forwarding:"
+            echo "        ssh -N -L 65432:127.0.0.1:65432 user@virtuoso-server"
+            echo "     b) In Virtuoso CIW, execute:"
+            /bin/printf '        load("%s")\n' "$virtuoso_setup_path"
+        else
+            echo "     In Virtuoso CIW, execute:"
+            /bin/printf '     load("%s")\n' "$virtuoso_setup_path"
+        endif
+        echo ""
+        echo "  4. Activate virtual environment:"
+    else
+        echo "  3. Activate virtual environment:"
+    endif
+    echo "     source .venv/bin/activate.csh"
+    echo ""
+    echo "  5. Start the agent:"
+    echo "     python main.py"
+    echo ""
+    echo "Note: UTF-8 encoding has been added to ~/.cshrc"
+    echo "      All new csh sessions will automatically enable UTF-8 encoding"
     echo ""
     exit 0
 

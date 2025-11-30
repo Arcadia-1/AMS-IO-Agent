@@ -10,6 +10,20 @@ Options:
     -r, --run          Run DRC check
     -a, --all          Show design information and run DRC check (default behavior)
     -q, --quiet        Quiet mode, show only error messages
+    --lib LIB          Target library name (optional)
+    --cell CELL        Target cell name (optional)
+    --view VIEW        Target view name (default: layout)
+    --tech TECH        Technology node: T28 or T180 (default: T28)
+
+Examples:
+    # Run DRC on specific design with T28
+    python test_drc_runner_tool.py --lib LLM_Layout_Design --cell test1 --tech T28
+    
+    # Run DRC on specific design with T180
+    python test_drc_runner_tool.py --lib LLM_Layout_Design --cell test1 --tech T180
+    
+    # Show help
+    python test_drc_runner_tool.py --help
 """
 
 import unittest
@@ -49,16 +63,16 @@ def show_design_info(quiet=False, lib=None, cell=None, view="layout"):
         print(f"View: {view2}")
     return True
 
-def run_drc_check(quiet=False, lib=None, cell=None, view="layout"):
+def run_drc_check(quiet=False, lib=None, cell=None, view="layout", tech_node="T28"):
     """Run DRC check"""
     if not quiet:
         print("\n2. Running DRC check:")
     
     # If lib/cell/view provided, run on the specified cellView; otherwise fall back to current design
     if lib and cell:
-        result = run_drc(cell=cell, lib=lib, view=view)
+        result = run_drc(cell=cell, lib=lib, view=view, tech_node=tech_node)
     else:
-        result = run_drc()
+        result = run_drc(tech_node=tech_node)
     print(result)
     
     # Check if DRC execution failed
@@ -76,6 +90,7 @@ def main():
     parser.add_argument('--lib', dest='lib', default=None, help='Target library name to run on (optional)')
     parser.add_argument('--cell', dest='cell', default=None, help='Target cell name to run on (optional)')
     parser.add_argument('--view', dest='view', default='layout', help='Target view name (default: layout)')
+    parser.add_argument('--tech', dest='tech_node', default='T28', choices=['T28', 'T180'], help='Technology node (default: T28)')
     
     args = parser.parse_args()
     
@@ -95,7 +110,7 @@ def main():
     # Run DRC check
     if args.run or args.all:
         if success:  # Only run DRC if design information was successfully obtained
-            success = run_drc_check(args.quiet, lib=args.lib, cell=args.cell, view=args.view) and success
+            success = run_drc_check(args.quiet, lib=args.lib, cell=args.cell, view=args.view, tech_node=args.tech_node) and success
     
     if not args.quiet:
         if success:

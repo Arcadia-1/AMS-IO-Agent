@@ -47,7 +47,13 @@ The AI should minimize interruptions to the workflow. Only ask the user for info
 - For non-blocking information: Automatically infer, generate, or use defaults, then proceed. Inform the user in the final summary if needed, not as a blocking question.
 - For blocking information: Ask clearly and concisely, explain why it's needed, then wait for response before proceeding.
 
-**Note**: Domain-specific guidelines on what constitutes blocking vs non-blocking information are defined in the relevant workflow framework documents.
+**CRITICAL EXCEPTION - Workflow-Specific Requirements Override General Rules**:
+- **If a workflow document (e.g., `structured.md`) explicitly requires using `user_input` tool for user confirmation, you MUST use `user_input` tool and wait for response**
+- **Never assume or auto-infer user confirmation when the workflow explicitly requires `user_input` tool**
+- **Workflow-specific requirements take precedence over general "minimize interruption" rules**
+- **Example**: If `structured.md` says "Use `user_input` tool to ask user confirmation", you must call `user_input` tool and wait, even if you think it's a non-blocking question
+
+**Note**: Domain-specific guidelines on what constitutes blocking vs non-blocking information are defined in the relevant workflow framework documents. When workflow documents explicitly require `user_input` tool, that requirement is mandatory and overrides general communication rules.
 
 ### When to Ask for Clarification
 
@@ -70,6 +76,7 @@ The AI should minimize interruptions to the workflow. Only ask the user for info
 **Principle**: 
 - For essential/blocking information: When in doubt, ask! Better to clarify than to make wrong assumptions.
 - For non-essential information: Auto-infer or generate, then proceed. Do not interrupt the workflow with confirmation questions.
+- **Exception**: If workflow documents explicitly require `user_input` tool for confirmation, always use `user_input` tool regardless of whether the information seems blocking or non-blocking.
 
 ## File Output Rules
 
@@ -100,14 +107,13 @@ All generated files must be organized in timestamp-based directories:
    │   └── my_script.py
    ├── json/
    │   └── data.json
-   ├── ir_v1.json
    └── ...
    ```
 
 3. **Correct examples**:
    - `output/generated/20241112_143025/skill/my_script.il`
    - `output/generated/20241112_143025/python/my_script.py`
-   - `output/generated/20241112_143025/ir_v1.json`
+   - `output/generated/20241112_143025/data.json`
 
 4. **Wrong examples**:
    - `output/generated/skill/my_script.il` (missing timestamp directory)
@@ -137,7 +143,6 @@ Python: PEP 8, type hints, docstrings
 - Only call `final_answer()` at the very end of the complete workflow (when all phases are complete and no further execution is needed)
 - Do not call `final_answer()` during phase transitions (Phase 1 → Phase 2, Phase 2 → Phase 3, etc.)
 - Do not call `final_answer()` when there are more steps to execute - continue execution instead
-- During phase transitions: Update IR, then proceed directly to the next phase without calling `final_answer()`
 - Continuous execution: The workflow should execute continuously through all phases without interruption
 
 ### Python Import Requirements
@@ -218,7 +223,7 @@ Load before answering specialized questions.
 
 Create and maintain a knowledge index for loaded modules.
 
-After loading each knowledge module, create and maintain a lightweight index that allows quick lookup and confirmation of key information. This index is independent of IR - it's a mental/work memory tool for the agent to quickly recall what knowledge has been loaded.
+After loading each knowledge module, create and maintain a lightweight index that allows quick lookup and confirmation of key information. This is a mental/work memory tool for the agent to quickly recall what knowledge has been loaded.
 
 1. **Index Structure**: For each loaded module, mentally record (or note down):
    - Module name/path: The full path or identifier of the loaded module
@@ -231,48 +236,35 @@ After loading each knowledge module, create and maintain a lightweight index tha
 2. **Index Maintenance**:
    - Keep the index in your working memory - it's a mental map of loaded knowledge
    - Update the index whenever a new module is loaded
-   - The index is for your reference, not necessarily part of IR
-   - You can optionally note key points in comments or temporary variables, but don't bloat IR with it
+   - You can optionally note key points in comments or temporary variables
 
 3. **Using the Index**:
-   - When uncertain: If you're unsure about a rule, requirement, or procedure, check your knowledge index first (check IR.capabilities.knowledge_index)
+   - When uncertain: If you're unsure about a rule, requirement, or procedure, check your knowledge index first
    - Quick lookup: Use the index to identify which module contains the information you need
    - Re-confirm: If needed, use `load_domain_knowledge(module_name)` to reload and re-read specific sections to confirm details
    - Before making decisions: Review relevant index entries to ensure you're following the correct rules
-   - Workflow: Check IR.capabilities.knowledge_index → Identify relevant module → Reload module if needed → Confirm details → Proceed with decision
-   - Example: "I remember module X mentioned rule Y about dummy capacitors - let me check IR.capabilities.knowledge_index and reload that module to confirm"
-
-4. **Index Storage**:
-   - The knowledge index is stored in IR.capabilities.knowledge_index for persistence
-   - Keep it minimal: module names, key topics, brief rule summaries only (not full content)
-   - IR tracks task state (goals, constraints, configuration, execution state)
-   - Knowledge index tracks what knowledge has been loaded and key points for quick reference
-   - The index helps you quickly identify which module to reload when you need to confirm details
-   - Capabilities field combines both "what can be done" (capability_list) and "what knowledge is available" (knowledge_index)
+   - Workflow: Check knowledge index → Identify relevant module → Reload module if needed → Confirm details → Proceed with decision
+   - Example: "I remember module X mentioned rule Y about dummy capacitors - let me check my knowledge index and reload that module to confirm"
 
 **Benefits**:
 - Quick reference without re-reading full module content
 - Helps maintain consistency with loaded knowledge
 - Enables targeted re-loading of specific modules when needed
 - Reduces errors from forgetting or misremembering rules
-- Independent of IR - doesn't bloat the task state representation
 
 ### Knowledge Loading Rules (Top-Level Policy)
 
 - Always load the knowledge base index first for the selected knowledge base
+- **IO_RING task exception**: For IO_RING generation tasks, do NOT load technology library knowledge (e.g., Tech_28nm_28nm_Technology) - IO_RING tasks only need IO_Ring_Core_structured knowledge module
 - **Phased loading strategy**: Use incremental, phase-based loading to avoid knowledge overload and reduce generation errors:
   - **Planning phase**: When analyzing user input, identify all knowledge modules needed for the complete workflow (all phases)
-    - List all required modules in `pending_knowledge_modules` in the Task IR
     - This includes modules for Phase 1, Phase 2, and Phase 3 if the user requests a complete workflow
     - This helps with planning and visibility of what will be loaded later
   - **Loading phase**: Load only the minimal set of modules required for the current workflow phase
-    - Filter `pending_knowledge_modules` to identify modules needed for the current phase
-    - Load only the filtered modules for the current phase
-    - Modules for future phases remain in `pending_knowledge_modules` until their phase begins
+    - Load only the modules needed for the current phase
+    - Modules for future phases remain pending until their phase begins
   - **Phase transition**: When transitioning to the next phase
-    - Filter `pending_knowledge_modules` to identify modules needed for the new phase
-    - Load those modules from `pending_knowledge_modules`
-    - Move loaded modules from `pending_knowledge_modules` to `loaded_knowledge_modules`
+    - Load the modules needed for the new phase
     - Then proceed with the new phase execution
 - Build a lightweight dependency/capability view from the index (no full loads): modules advertise capabilities and dependencies
 - Infer user intent into a minimal capability set (intent scope) based on the current workflow phase
@@ -285,11 +277,10 @@ After loading each knowledge module, create and maintain a lightweight index tha
 Execution sequence for any workflow phase transition or new task - each step must be in a separate code execution block and must be completed before proceeding:
 
 1. **Step 1 (Load only)**: Load all required knowledge modules for the current phase/task only
-   - Filter `pending_knowledge_modules` to identify modules needed for the current phase
    - Call `load_domain_knowledge(...)` for each required module for the current phase
    - Print the full content of each loaded module
    - Verify: Confirm all required modules are loaded and printed
-   - Stop here - do not update IR, do not execute tasks, do not generate code in this step
+   - Stop here - do not execute tasks, do not generate code in this step
    - This step only loads and prints knowledge - nothing else
    - Must complete this step successfully before proceeding to Step 2
 
@@ -297,20 +288,11 @@ Execution sequence for any workflow phase transition or new task - each step mus
    - Read the printed knowledge content carefully from the previous step
    - Understand the rules, requirements, and procedures from the loaded modules
    - Verify: Confirm understanding of key rules and requirements
-   - Stop here - do not update IR, do not execute tasks, do not generate code in this step
+   - Stop here - do not execute tasks, do not generate code in this step
    - This step only reviews and understands knowledge - nothing else
    - Must complete this step successfully before proceeding to Step 3
 
-3. **Step 3 (Update IR only)**: Update Task IR to reflect the current phase/task state
-   - Update `loaded_knowledge_modules` list with actually loaded modules
-   - Update `pending_knowledge_modules` list
-   - Update phase, plan, etc. based on understood knowledge
-   - Verify: Confirm IR is correctly updated
-   - Stop here - do not execute tasks, do not generate code in this step
-   - This step only updates IR - nothing else
-   - Must complete this step successfully before proceeding to Step 4
-
-4. **Step 4 (Execute)**: Execute the task using the loaded and understood knowledge
+3. **Step 3 (Execute)**: Execute the task using the loaded and understood knowledge
    - Generate code, create files, or perform actions based on the loaded and understood knowledge
    - Reference the loaded knowledge modules when making decisions
 
@@ -324,8 +306,7 @@ Execution sequence for any workflow phase transition or new task - each step mus
 **Correct approach:**
 - Step 1: Load knowledge modules and print content (separate code execution block, only loading, verify completion)
 - Step 2: Review and understand knowledge (separate code execution block, only understanding, verify completion)
-- Step 3: Update IR (separate code execution block, only IR update, verify completion)
-- Step 4: Execute tasks (separate code execution block, only execution)
+- Step 3: Execute tasks (separate code execution block, only execution)
 - Each step must be completely independent, in a separate code execution block, and verified before proceeding
 - This applies to all phase transitions (Phase 1 → Phase 2, Phase 2 → Phase 3, etc.) and any new task requiring specialized knowledge
 
@@ -341,145 +322,6 @@ Execution sequence for any workflow phase transition or new task - each step mus
 - If the content is multiline, print it verbatim in full; chunking is allowed internally but the final console output must contain the entire text with no truncation markers
 - Gating: If the full body content is not printed, treat the module as not loaded and do not proceed to reasoning or downstream steps
 
-## Task IR (Minimal Intermediate Representation)
-
-Before loading any module content (other than the KB index), build and print a minimal task IR derived from the user prompt and index metadata. The IR guides what to load next.
-
-### IR Schema
-
-IR schema (minimal fields - top-level abstract):
-- goals: primary objectives extracted from user input, organized by workflow phases if applicable
-- constraints: all constraints extracted from user input (design requirements, size limits, performance targets, etc.)
-- configuration: essential user-provided configuration that persists across phases (structure depends on project type - organize flexibly based on specific project requirements)
-  - Top-level abstraction: Structure varies by project type - agent organizes information appropriately for each project
-  - Do not store: detailed execution history, intermediate parameters, verbose execution details, round-by-round parameters, detailed results, long data structures (large arrays, long lists, extensive data objects)
-  - Store only: essential persistent configuration (e.g., identifiers, paths, technology settings, target values, output directory references, file paths to external data files)
-  - Reference external files: Detailed data (parameters, geometry, arrays, lists, etc.) should be saved in dedicated external files - reference these file paths in IR, do not duplicate their content
-- capabilities: current capabilities and knowledge index enabled by loaded knowledge modules
-  - Structure: object with two parts:
-    - capability_list: List of capability names available based on loaded knowledge (keep minimal, just names)
-    - knowledge_index: Lightweight index of loaded knowledge modules for quick reference - module names, key topics, critical rules summaries, key procedures, important parameters (keep minimal, brief summaries only, not full content)
-  - Purpose: Track what the agent can do and what knowledge is available for quick lookup
-  - Update: When knowledge modules are loaded/unloaded
-- unknowns: blocking unknowns that cannot be inferred from user input or knowledge base index (empty if none)
-- plan: list of next actions/operations to execute based on current phase and loaded knowledge
-- loaded_knowledge_modules: list of knowledge base modules that have been successfully loaded
-- pending_knowledge_modules: list of knowledge base modules that need to be loaded next
-
-**Top-level abstraction principle**: IR schema defines the abstract structure. The concrete organization of fields (especially `configuration`) is determined by the specific project requirements. Different projects may need different sub-structures - maintain top-level abstraction and let the agent organize information appropriately for each project type.
-
-### IR Content Rules
-
-**IR must be minimal and contain only essential information**
-
-IR is a state tracker, not a log file: IR tracks what happened (outcomes), not how it happened (process).
-
-**What to Record**:
-- Final outcomes (pass/fail, key metrics)
-- Critical decisions
-- Phase state transitions
-- Essential persistent configuration (identifiers, paths, technology settings, target values, output directory references)
-- File paths to external data files - not the actual data content
-- After iteration round completion: only pass/fail status, final value, iteration number, file path to results file (not detailed data structures)
-- After phase transitions: only phase change, essential phase-specific config
-
-**Keep it short**: If a field would contain more than a few lines of data (arrays, long lists, extensive objects), save it to an external file and store only the file path in IR.
-
-**General principle**: Store only outcomes and references (file paths), not detailed data structures. If detailed data is needed, it should be saved to an external file first, then only the file path is stored in IR.
-
-**What NOT to Record**:
-- Long data structures - do not store large arrays, long lists, or extensive data structures in IR (save to external files, reference file path in IR)
-- Iteration parameters - these are saved in dedicated external files, do not duplicate in IR
-- Intermediate calculation steps, detailed reports, verbose logs
-- Process descriptions or execution details
-- Information that exists in generated files, logs, or execution context
-- Detailed execution history, intermediate parameters, round-by-round parameters
-- Verbose descriptions, explanations, or non-essential details
-- Information that can be inferred from context
-
-**Reference external files**: Detailed data (parameters, geometry, arrays, lists, etc.) should be saved in dedicated external files - IR should contain only file paths/references, not the actual data content
-
-### IR Process
-
-1. Comprehensively analyze user input to extract all information (goals, constraints, configuration details, file paths, etc.)
-2. Systematically organize extracted information into appropriate IR fields (goals, constraints, configuration)
-3. Supplement and validate extracted information using knowledge base index metadata (infer missing defaults, validate technology nodes, verify naming conventions, etc.)
-4. Initialize loaded_knowledge_modules as empty list
-5. Compute pending_knowledge_modules = all domains needed for the complete workflow (all phases), based on user intent and index metadata
-   - Include modules for all phases (Phase 1, Phase 2, Phase 3, etc.) to provide full visibility of what will be loaded throughout the entire workflow
-6. If unknowns contain blocking items, ask only for those
-7. For the current phase, filter pending_knowledge_modules to identify modules needed for the current phase
-8. Load only the filtered modules needed for the current phase from pending_knowledge_modules
-9. Compute plan = next actions/operations to execute based on current phase and loaded knowledge
-10. After each load, update IR: 
-    - Move the loaded module(s) from pending_knowledge_modules to loaded_knowledge_modules (both operations: add to loaded and remove from pending - never leave a module in both lists)
-    - Update capabilities: 
-      - Add capabilities to capabilities.capability_list enabled by the newly loaded module(s) (e.g., "H-shape dummy generation", "Array generation", etc.) - keep minimal, just capability names
-      - Add knowledge index entry to capabilities.knowledge_index for the newly loaded module with key topics, critical rules summaries, key procedures, and important parameters (keep minimal, brief summaries only - this is for quick reference, not full content)
-    - Retain modules for future phases in pending_knowledge_modules
-    - Keep Phase 2/Phase 3 modules in pending_knowledge_modules when loading Phase 1 modules
-    - Update plan based on loaded knowledge, update if new facts resolve unknowns
-    - Print updated IR summary
-11. When transitioning to next phase: load required modules from pending_knowledge_modules, then update IR and proceed
-
-### Strict Gating Rules
-
-- pending_knowledge_modules must contain modules for all phases (full workflow planning) from the initial IR build, and must be maintained throughout the workflow
-- When loading modules, remove only the loaded module(s) from pending_knowledge_modules, keeping modules for future phases in the list
-- Load only modules needed for the current phase from pending_knowledge_modules
-- When transitioning to next phase, load required modules from pending_knowledge_modules before proceeding
-- Load modules only from IR.pending_knowledge_modules
-- Plan should reflect next actions/operations, not knowledge module names
-- IR must be continuously updated throughout the workflow - after each significant step (parameter synthesis, SKILL generation, DRC/PEX execution, iteration completion, phase transition), update IR with relevant information and print updated IR summary to ensure all key information is preserved and accessible
-
-### Execution Order
-
-1. scan_knowledge_base(rescan=False)
-2. Build and print Task IR (from user prompt + index metadata if already known); if blocking unknowns exist, ask minimally now
-3. load_domain_knowledge(KB_INDEX) and print full content
-4. Update Task IR: add KB_INDEX to loaded_knowledge_modules, recompute pending_knowledge_modules and plan
-5. For each domain in IR.pending_knowledge_modules: load_domain_knowledge(domain) and print full content, then update Task IR: move domain from pending_knowledge_modules to loaded_knowledge_modules, update plan
-6. Proceed to reasoning/execution only after steps 3–5 complete successfully
-
-### IR Update Cadence
-
-**Version the IR as ir_vN** (N starts at 1). Update IR only when there are material results to record, not for intermediate process steps.
-
-**When to update IR**:
-- After each domain load completing - record only module names, not content
-- After iteration round completion (when results are available) - record only: pass/fail status, final value, iteration number, file path to results file
-  - Do not store detailed data structures (parameters, geometry, arrays, lists, etc.) in IR - these must be saved in external files first
-  - Store only the file path to the external results file, not the actual data content
-  - Store only outcomes (status, final value, error percentage) and file reference, not the detailed data
-- On phase transitions - record only: phase change, essential phase-specific config (do not call `final_answer()` on phase transitions)
-- Before calling final_answer (only at the very end of the complete workflow) - final state only
-
-**Do not update IR for**:
-- Intermediate steps (parameter calculation, geometry computation, SKILL script generation)
-- Detailed reports, logs, or verbose descriptions
-- Information that exists in generated files or execution context
-- Process descriptions or execution details
-
-**IR Persistence**:
-- Must save IR to file after each IR update: write to `output/generated/<timestamp>/ir_vN.json`
-- Must increment version number (ir_v1.json, ir_v2.json, ir_v3.json, etc.) each time IR is updated
-- Must echo the file path in the console after saving
-- Use JSON format with proper indentation for readability
-
-**Gating**: If a material result is obtained without an IR update, pause and emit the IR update before continuing (but keep it minimal), then save it to file.
-
-### Log Sequencing and Structure
-
-- Every execution block must follow this order:
-  1) `=== TASK IR vN ===` (print full IR JSON)
-  2) `=== EXECUTION PLAN from IR vN ===` (echo IR.plan - next actions/operations to execute)
-  3) Perform the planned actions (load knowledge modules from pending_knowledge_modules if needed, then execute operations from plan)
-  4) `=== TASK IR vN+1 ===` (if state changed)
-  5) Save IR to file - after printing `=== TASK IR vN+1 ===`, must save IR to `output/generated/<timestamp>/ir_vN+1.json` and echo the file path
-- Do not perform loads, tool calls, or `final_answer` without a preceding `=== TASK IR vN ===` and matching `=== EXECUTION PLAN ... ===` in the same step
-- If an exception occurs mid-step, on recovery first re-print the last IR (`=== TASK IR vN (recovered) ===`) before resuming
-- IR persistence is mandatory - every IR update must be saved to disk immediately after the update
-
 ## User Profile
 
 Your system prompt already includes the complete user profile.
@@ -487,3 +329,4 @@ Your system prompt already includes the complete user profile.
 To modify: Read current profile → Edit content → Write back with `update_user_profile(new_content)`
 
 Changes take effect on next restart. Always consider user preferences when responding.
+

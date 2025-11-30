@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Health Check Tool - 系统健康检查
+Health Check Tool - System health check
 
-快速检查系统关键组件是否可用，不做详细测试。
+Quickly check if critical system components are available, without detailed testing.
 """
 
 import os
@@ -37,7 +37,7 @@ def run_health_check() -> str:
     
     project_root = Path(__file__).parent.parent.parent
     
-    # 1. 检查关键工具是否注册
+    # 1. Check if critical tools are registered
     from ..utils.tool_loader import TOOL_REGISTRY
     
     critical_tools = [
@@ -59,7 +59,7 @@ def run_health_check() -> str:
             issues.append(f"Tool '{tool_name}' not registered")
             tool_details.append(f"  ❌ {tool_name:<35} [NOT FOUND]")
     
-    # 2. 检查环境变量
+    # 2. Check environment variables
     required_env = ["USE_RAMIC_BRIDGE"]
     optional_env = ["DEEPSEEK_API_KEY", "WANDOU_API_KEY", "RB_HOST", "RB_PORT"]
     
@@ -84,7 +84,7 @@ def run_health_check() -> str:
             warnings.append(f"Optional env '{var}' not set")
             env_details.append(f"  ⚠️  {var:<35} [NOT SET - Optional]")
     
-    # 3. 检查关键配置文件
+    # 3. Check critical configuration files
     critical_files = [
         "knowledge_base/system_prompt.md",
         "config/tools_config.yaml",
@@ -100,7 +100,7 @@ def run_health_check() -> str:
             issues.append(f"File '{file}' missing")
             file_details.append(f"  ❌ {file:<35} [NOT FOUND]")
     
-    # 4. 检查知识库
+    # 4. Check knowledge base
     kb_dir = project_root / "knowledge_base"
     if not kb_dir.exists():
         issues.append("Knowledge base directory missing")
@@ -111,7 +111,7 @@ def run_health_check() -> str:
         if len(kb_files) < 2:
             warnings.append(f"Knowledge base has only {len(kb_files)} file(s)")
     
-    # 5. 检查 SKILL 工具目录
+    # 5. Check SKILL tools directory
     skill_tools_dir = project_root / "skill_tools"
     if not skill_tools_dir.exists():
         warnings.append("SKILL tools directory missing")
@@ -120,13 +120,13 @@ def run_health_check() -> str:
         skill_files = list(skill_tools_dir.glob("*.il"))
         file_details.append(f"  ✅ {'skill_tools/':<35} ({len(skill_files)} .il files)")
     
-    # 6. 检查输出目录
+    # 6. Check output directory
     output_dir = project_root / "output"
     if not output_dir.exists():
         warnings.append("Output directory missing (will be created on first use)")
         file_details.append(f"  ⚠️  {'output/':<35} [Will be created on first use]")
     else:
-        # 检查子目录
+        # Check subdirectories
         logs_dir = output_dir / "logs"
         generated_dir = output_dir / "generated"
         screenshots_dir = output_dir / "screenshots"
@@ -142,7 +142,7 @@ def run_health_check() -> str:
         status_str = f"({', '.join(subdirs_status)})" if subdirs_status else "[empty]"
         file_details.append(f"  ✅ {'output/':<35} {status_str}")
     
-    # 生成报告
+    # Generate report
     report = []
     
     if not issues and not warnings:
@@ -187,17 +187,17 @@ def check_virtuoso_connection() -> str:
     """
     report = []
     
-    # 检查使用哪种 Bridge
+    # Check which Bridge is used
     use_ramic = os.getenv("USE_RAMIC_BRIDGE", "false").lower() in ["true", "1", "yes"]
     
     if use_ramic:
         report.append("Bridge Type: RAMIC Bridge")
         
-        # 检查 RAMIC Bridge 连接
+        # Check RAMIC Bridge connection
         try:
             from ..tools.bridge_utils import rb_exec
             
-            # 简单测试：执行一个无害的 SKILL 命令
+            # Simple test: execute a harmless SKILL command
             test_command = "(1+1)"
             result = rb_exec(test_command, timeout=5)
             
@@ -220,16 +220,16 @@ def check_virtuoso_connection() -> str:
     else:
         report.append("Bridge Type: skillbridge")
         
-        # 检查 skillbridge 连接
+        # Check skillbridge connection
         try:
             import skillbridge
             
             report.append("Attempting to connect to Virtuoso...\n")
             
-            # 尝试连接
+            # Try to connect
             ws = skillbridge.Workspace.open()
             
-            # 简单测试
+            # Simple test
             test_command = "(1+1)"            
             result = ws.eval(test_command)
             

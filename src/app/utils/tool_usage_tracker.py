@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Tool Usage Tracker - 工具使用统计
+Tool Usage Tracker - Tool usage statistics
 
-追踪工具使用情况、成功率、执行时间等指标，帮助 Agent 自我优化。
+Track tool usage, success rate, execution time and other metrics to help Agent self-optimize.
 """
 
 import json
@@ -15,13 +15,13 @@ from collections import defaultdict
 
 
 class ToolUsageTracker:
-    """工具使用追踪器"""
+    """Tool usage tracker"""
     
     def __init__(self, stats_file: str = "output/logs/tool_usage_stats.json"):
         self.stats_file = Path(stats_file)
         self.stats_file.parent.mkdir(parents=True, exist_ok=True)
         
-        # 当前会话统计（内存中）
+        # Current session statistics (in-memory)
         self.session_stats = defaultdict(lambda: {
             "total_calls": 0,
             "successful_calls": 0,
@@ -32,23 +32,23 @@ class ToolUsageTracker:
             "error_messages": []
         })
         
-        # 加载历史统计
+        # Load historical statistics
         self.load_stats()
     
     def load_stats(self):
-        """加载历史统计数据"""
+        """Load historical statistics data"""
         if self.stats_file.exists():
             try:
                 with open(self.stats_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
-                    # 合并历史数据到当前会话
+                    # Merge historical data into current session
                     for tool_name, stats in data.get("tools", {}).items():
                         self.session_stats[tool_name].update(stats)
             except Exception as e:
                 print(f"Warning: Failed to load tool stats: {e}")
     
     def save_stats(self):
-        """保存统计数据到文件"""
+        """Save statistics data to file"""
         try:
             stats_data = {
                 "last_updated": datetime.now().isoformat(),
@@ -63,39 +63,39 @@ class ToolUsageTracker:
     def track_call(self, tool_name: str, success: bool, execution_time: float, 
                     error_msg: Optional[str] = None):
         """
-        追踪工具调用
+        Track tool call
         
         Args:
-            tool_name: 工具名称
-            success: 是否成功
-            execution_time: 执行时间（秒）
-            error_msg: 错误信息（如果失败）
+            tool_name: Tool name
+            success: Whether successful
+            execution_time: Execution time (seconds)
+            error_msg: Error message (if failed)
         """
         stats = self.session_stats[tool_name]
         
-        # 更新计数
+        # Update counts
         stats["total_calls"] += 1
         if success:
             stats["successful_calls"] += 1
         else:
             stats["failed_calls"] += 1
-            if error_msg and len(stats["error_messages"]) < 10:  # 只保留最近 10 个错误
+            if error_msg and len(stats["error_messages"]) < 10:  # Keep only last 10 errors
                 stats["error_messages"].append({
                     "time": datetime.now().isoformat(),
-                    "message": str(error_msg)[:200]  # 限制长度
+                    "message": str(error_msg)[:200]  # Limit length
                 })
         
-        # 更新时间统计
+        # Update time statistics
         stats["total_time"] += execution_time
         stats["avg_time"] = stats["total_time"] / stats["total_calls"]
         stats["last_used"] = datetime.now().isoformat()
         
-        # 定期保存（每 5 次调用保存一次）
+        # Periodically save (save every 5 calls)
         if stats["total_calls"] % 5 == 0:
             self.save_stats()
     
     def get_tool_stats(self, tool_name: str) -> Dict[str, Any]:
-        """获取特定工具的统计信息"""
+        """Get statistics for specific tool"""
         stats = self.session_stats.get(tool_name)
         if not stats:
             return {"error": f"No stats found for tool: {tool_name}"}
@@ -115,7 +115,7 @@ class ToolUsageTracker:
         }
     
     def get_all_stats(self) -> Dict[str, Any]:
-        """获取所有工具的统计信息"""
+        """Get statistics for all tools"""
         all_stats = {}
         for tool_name in self.session_stats.keys():
             all_stats[tool_name] = self.get_tool_stats(tool_name)
@@ -124,11 +124,11 @@ class ToolUsageTracker:
     
     def get_top_tools(self, n: int = 10, by: str = "calls") -> list:
         """
-        获取使用最多的工具
+        Get most used tools
         
         Args:
-            n: 返回前 N 个工具
-            by: 排序依据 ("calls", "success_rate", "avg_time")
+            n: Return top N tools
+            by: Sort by ("calls", "success_rate", "avg_time")
         """
         tools_list = []
         for tool_name, stats in self.session_stats.items():
@@ -143,7 +143,7 @@ class ToolUsageTracker:
                 "avg_time": stats["avg_time"]
             })
         
-        # 排序
+        # Sort
         if by == "calls":
             tools_list.sort(key=lambda x: x["calls"], reverse=True)
         elif by == "success_rate":
@@ -155,14 +155,14 @@ class ToolUsageTracker:
     
     def get_problematic_tools(self, threshold: float = 0.5) -> list:
         """
-        获取问题工具（成功率低于阈值）
+        Get problematic tools (success rate below threshold)
         
         Args:
-            threshold: 成功率阈值（0-1）
+            threshold: Success rate threshold (0-1)
         """
         problematic = []
         for tool_name, stats in self.session_stats.items():
-            if stats["total_calls"] < 3:  # 至少调用 3 次才统计
+            if stats["total_calls"] < 3:  # At least 3 calls to be counted
                 continue
             
             success_rate = stats["successful_calls"] / stats["total_calls"]
@@ -177,13 +177,13 @@ class ToolUsageTracker:
         return problematic
     
     def generate_report(self) -> str:
-        """生成统计报告"""
+        """Generate statistics report"""
         report = ["=" * 60]
         report.append("Tool Usage Statistics Report")
         report.append("=" * 60)
         report.append("")
         
-        # 总体统计
+        # Overall statistics
         total_calls = sum(s["total_calls"] for s in self.session_stats.values())
         total_success = sum(s["successful_calls"] for s in self.session_stats.values())
         total_failed = sum(s["failed_calls"] for s in self.session_stats.values())
@@ -196,7 +196,7 @@ class ToolUsageTracker:
             report.append(f"Overall Success Rate: {total_success/total_calls*100:.1f}%")
         report.append("")
         
-        # 最常用工具
+        # Most used tools
         report.append("Top 5 Most Used Tools:")
         report.append("-" * 60)
         for i, tool in enumerate(self.get_top_tools(5, by="calls"), 1):
@@ -205,7 +205,7 @@ class ToolUsageTracker:
                          f"{tool['avg_time']:.2f}s avg")
         report.append("")
         
-        # 问题工具
+        # Problematic tools
         problematic = self.get_problematic_tools(0.7)
         if problematic:
             report.append("⚠️  Problematic Tools (success rate < 70%):")
@@ -221,11 +221,11 @@ class ToolUsageTracker:
         return "\n".join(report)
 
 
-# 全局追踪器实例
+# Global tracker instance
 _tracker_instance = None
 
 def get_tracker() -> ToolUsageTracker:
-    """获取全局追踪器实例"""
+    """Get global tracker instance"""
     global _tracker_instance
     if _tracker_instance is None:
         _tracker_instance = ToolUsageTracker()
@@ -234,9 +234,9 @@ def get_tracker() -> ToolUsageTracker:
 
 def track_tool_execution(tool_name: str):
     """
-    装饰器：自动追踪工具执行
+    Decorator: automatically track tool execution
     
-    用法:
+    Usage:
         @track_tool_execution("my_tool")
         def my_tool():
             ...
@@ -264,20 +264,20 @@ def track_tool_execution(tool_name: str):
 
 
 if __name__ == "__main__":
-    # 测试
+    # Test
     tracker = ToolUsageTracker()
     
-    # 模拟一些工具调用
+    # Simulate some tool calls
     tracker.track_call("run_il_file", True, 1.2)
     tracker.track_call("run_il_file", True, 1.5)
     tracker.track_call("run_il_file", False, 0.8, "File not found")
     tracker.track_call("scan_knowledge_base", True, 0.3)
     tracker.track_call("load_domain_knowledge", True, 0.5)
     
-    # 生成报告
+    # Generate report
     print(tracker.generate_report())
     
-    # 保存统计
+    # Save statistics
     tracker.save_stats()
     print(f"\nStats saved to: {tracker.stats_file}")
 

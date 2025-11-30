@@ -1,8 +1,8 @@
 # Technology Configuration Interface Specification
 
-This document defines the **mandatory interface contract** that all technology configuration files must implement. Shape-specific modules rely on these parameters being available.
+This document defines the interface contract that all technology configuration files must implement. Shape-specific modules rely on these parameters being available.
 
-> **Purpose**: Ensure consistent decoupling between shape structures and technology parameters. Any new technology config must follow this interface.
+Purpose: Ensure consistent decoupling between shape structures and technology parameters. Any new technology config must follow this interface.
 
 ---
 
@@ -122,46 +122,46 @@ quantized_width = width_quantization_base + width_quantization_step * n
 ### When AI loads a technology config, it must verify:
 
 1. **All required parameters present**
-   - ✅ min_spacing defined
-   - ✅ min_width defined
-   - ✅ via_pitch defined
-   - ✅ via_margin defined
-   - ✅ width_quantization_base defined
-   - ✅ width_quantization_step defined
-   - ✅ allowed_metals defined (non-empty list)
-   - ✅ metal_naming_style defined ("METAL" or "M")
+   - min_spacing defined
+   - min_width defined
+   - via_pitch defined
+   - via_margin defined
+   - width_quantization_base defined
+   - width_quantization_step defined
+   - allowed_metals defined (non-empty list)
+   - metal_naming_style defined ("METAL" or "M")
 
 2. **Parameter values valid**
-   - ✅ min_spacing > 0
-   - ✅ min_width > 0
-   - ✅ via_pitch > 0
-   - ✅ via_margin ≥ 0
-   - ✅ width_quantization_base > 0
-   - ✅ width_quantization_step > 0
-   - ✅ allowed_metals is non-empty list
-   - ✅ metal_naming_style matches actual layer names in allowed_metals
+   - min_spacing > 0
+   - min_width > 0
+   - via_pitch > 0
+   - via_margin ≥ 0
+   - width_quantization_base > 0
+   - width_quantization_step > 0
+   - allowed_metals is non-empty list
+   - metal_naming_style matches actual layer names in allowed_metals
 
 3. **Consistency checks**
-   - ✅ All layer names in allowed_metals use the same prefix (METAL or M)
-   - ✅ metal_naming_style matches the prefix used in allowed_metals
-   - ✅ If low_parasitic_forbidden_metals defined, all entries must be in allowed_metals
+   - All layer names in allowed_metals use the same prefix (METAL or M)
+   - metal_naming_style matches the prefix used in allowed_metals
+   - If low_parasitic_forbidden_metals defined, all entries must be in allowed_metals
 
 ### When AI generates layout using shape + technology:
 
 1. **Parameter application**
-   - ✅ Use technology's min_spacing to validate all spacing parameters
-   - ✅ Use technology's min_width to validate all width parameters
-   - ✅ Use technology's via_pitch and via_margin in via calculations
-   - ✅ Use technology's quantization rules for horizontal widths
-   - ✅ Use technology's allowed_metals to validate layerList
-   - ✅ Use technology's metal_naming_style for via names
+   - Use technology's min_spacing to validate all spacing parameters
+   - Use technology's min_width to validate all width parameters
+   - Use technology's via_pitch and via_margin in via calculations
+   - Use technology's quantization rules for horizontal widths
+   - Use technology's allowed_metals to validate layerList
+   - Use technology's metal_naming_style for via names
 
 2. **Constraint enforcement**
-   - ✅ All spacings ≥ min_spacing
-   - ✅ All widths ≥ min_width
-   - ✅ Horizontal widths follow quantization formula
-   - ✅ Layer names match allowed_metals
-   - ✅ Via names use correct naming style
+   - All spacings ≥ min_spacing
+   - All widths ≥ min_width
+   - Horizontal widths follow quantization formula
+   - Layer names match allowed_metals
+   - Via names use correct naming style
 
 ---
 
@@ -226,7 +226,6 @@ When creating a new technology configuration, use this structure:
 ## Adding a New Technology
 
 ### Checklist
-
 - [ ] Create `[TECHNOLOGY]nm_Technology.md` following the template
 - [ ] Define all required parameters (min_spacing, min_width, via_pitch, via_margin, width_quantization_base, width_quantization_step, allowed_metals, metal_naming_style)
 - [ ] Verify parameter values are valid (positive numbers, non-empty lists)
@@ -239,7 +238,7 @@ When creating a new technology configuration, use this structure:
 
 ## Common Pitfalls
 
-### ❌ Don't hardcode technology values in shape modules
+### Don't hardcode technology values in shape modules
 ```markdown
 # BAD
 cut_columns = max(1, floor((width + 0.14) / 0.52))  # 180nm-specific!
@@ -248,7 +247,7 @@ cut_columns = max(1, floor((width + 0.14) / 0.52))  # 180nm-specific!
 cut_columns = max(1, floor((width + via_margin) / via_pitch))  # Uses tech config
 ```
 
-### ❌ Don't mix naming styles
+### Don't mix naming styles
 ```markdown
 # BAD (inconsistent)
 allowed_metals: ["M1", "METAL2", "M3"]
@@ -258,7 +257,7 @@ allowed_metals: ["M1", "M2", "M3"]
 metal_naming_style: "M"
 ```
 
-### ❌ Don't omit required parameters
+### Don't omit required parameters
 ```markdown
 # BAD - missing via_margin
 ## Via Parameters
@@ -277,4 +276,3 @@ metal_naming_style: "M"
 - **Technology_Configs/INDEX.md** - List of available technology configurations
 - **03_Shape_Specifics/[SHAPE]/03_01_[SHAPE]_Structure.md** - Shape modules that consume these parameters
 - **KB_INDEX.md** - Module combination examples
-

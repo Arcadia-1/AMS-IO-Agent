@@ -12,6 +12,13 @@ from src.tools.tool_manager import set_agent_instance
 from src.app.utils.agent_utils import TokenLimitedCodeAgent
 from src.app.utils.custom_logger import MinimalOutputLogger
 
+# Import default tools from smolagents
+try:
+    from smolagents.default_tools import UserInputTool
+except ImportError:
+    # Fallback if default_tools is not available
+    UserInputTool = None
+
 def create_model(model_config):
     """Create and configure the AI model"""
     return OpenAIServerModel(
@@ -42,6 +49,10 @@ def create_agent(model, final_instructions, show_code_execution: bool = False, c
     
     # Load tools from configuration instead of hardcoding
     tools = get_tools_for_agent(config_path)
+    
+    # Add default tools from smolagents (like user_input)
+    if UserInputTool is not None:
+        tools.append(UserInputTool())
     
     agent = TokenLimitedCodeAgent(
         tools=tools,
@@ -283,6 +294,15 @@ def run_cli_interface(agent, prompt_key=None, prompt_text=None, prompt_config_fi
     first_user_input = None
     interrupted = False
     
+    # Track Ctrl-C timing for double Ctrl-C exit
+    import time
+    last_interrupt_time = None
+    INTERRUPT_EXIT_THRESHOLD = 2.0  # Exit if two Ctrl-C within 2 seconds
+    
+    # Track if previous task was interrupted (to notify model on next input)
+    previous_task_interrupted = False
+    interrupted_task_prompt = None
+    
     # Priority: 1. Direct prompt text, 2. Command line prompt key, 3. Config file prompt, 4. user_prompt.txt, 5. Interactive input
     auto_prompt = None
     
@@ -354,18 +374,39 @@ def run_cli_interface(agent, prompt_key=None, prompt_text=None, prompt_config_fi
                     print("\n[Agent]: Goodbye!")
                     break
 
-                # 开始任务日志
+                # Add interruption notice if previous task was interrupted
+                if previous_task_interrupted:
+                    interruption_notice = f"[Note: Your previous task was interrupted. If the user asks about it, acknowledge the interruption.]\n\n"
+                    user_input = interruption_notice + user_input
+                    previous_task_interrupted = False
+                    interrupted_task_prompt = None
+
+                # Start task logging
                 task_logger.start_task(user_input)
 
                 try:
                     agent.run(task=user_input, reset=is_first_turn)
-                    # 任务成功
+                    # Task succeeded - clear interruption flag
                     task_logger.end_task("success")
+                    previous_task_interrupted = False
+                    interrupted_task_prompt = None
                 except KeyboardInterrupt:
-                    # Ctrl-C during agent.run() - just stop current generation
+                    # Ctrl-C during agent.run() - check for double Ctrl-C exit
+                    current_time = time.time()
+                    if last_interrupt_time and (current_time - last_interrupt_time) < INTERRUPT_EXIT_THRESHOLD:
+                        # Double Ctrl-C within threshold - exit
+                        print("\n\n⚠️  Double Ctrl-C detected - exiting...")
+                        interrupted = True
+                        break
+                    
+                    # Single Ctrl-C - just stop current generation
+                    last_interrupt_time = current_time
                     task_logger.end_task("interrupted")
                     print("\n\n⚠️  Generation interrupted by user (Ctrl-C)")
-                    print("   Type 'quit' or 'exit' to end session, or enter a new prompt.")
+                    print("   Type 'quit' or 'exit' to end session, or press Ctrl-C again quickly to exit.")
+                    # Mark that this task was interrupted (will notify model on next input)
+                    previous_task_interrupted = True
+                    interrupted_task_prompt = user_input[:100] + ("..." if len(user_input) > 100 else "")
                     # Don't break - continue the loop for next input
                     if is_first_turn:
                         first_user_input = user_input
@@ -373,7 +414,7 @@ def run_cli_interface(agent, prompt_key=None, prompt_text=None, prompt_config_fi
                         auto_prompt = None
                     continue
                 except Exception as e:
-                    # 任务失败
+                    # Task failed
                     task_logger.end_task("failed", str(e))
                     raise
 
@@ -384,7 +425,16 @@ def run_cli_interface(agent, prompt_key=None, prompt_text=None, prompt_config_fi
                     auto_prompt = None
 
             except KeyboardInterrupt:
-                # Ctrl-C during input() - clear any pending input on Windows
+                # Ctrl-C during input() - check for double Ctrl-C exit
+                current_time = time.time()
+                if last_interrupt_time and (current_time - last_interrupt_time) < INTERRUPT_EXIT_THRESHOLD:
+                    # Double Ctrl-C within threshold - exit
+                    print("\n\n⚠️  Double Ctrl-C detected - exiting...")
+                    interrupted = True
+                    break
+                
+                # Single Ctrl-C - clear any pending input on Windows
+                last_interrupt_time = current_time
                 print("")
                 try:
                     import msvcrt

@@ -179,16 +179,16 @@ class SkillGenerator:
         
         # Place vias and connect to configuration lines for digital power pads
         for pad in all_digital_pads:
-            device_type = pad["device_type"]
-            if device_type in ["PVDD1DGZ_V_G", "PVDD1DGZ_H_G", "PVSS1DGZ_V_G", "PVSS1DGZ_H_G"]:
+            device = pad["device"]
+            if device in ["PVDD1DGZ_V_G", "PVDD1DGZ_H_G", "PVSS1DGZ_V_G", "PVSS1DGZ_H_G"]:
                 x, y = pad["position"]
                 orient = pad["orientation"]
                 
                 # Determine offset based on pad type
-                if device_type.startswith("PVDD"):
+                if device.startswith("PVDD"):
                     offset = 2.345
                     is_vdd = True
-                elif device_type.startswith("PVSS"):
+                elif device.startswith("PVSS"):
                     offset = 2.39
                     is_vdd = False
                 else:
@@ -326,7 +326,7 @@ class SkillGenerator:
             x, y = pad["position"]
             orient = pad["orientation"]
             name = pad["name"]
-            device_type = pad.get("device_type", "")
+            device = pad.get("device", "")
             
             # Calculate pin label position (standard way)
             if orient == "R0":
@@ -374,7 +374,7 @@ class SkillGenerator:
             
             x, y = position
             name = inner_pad["name"]
-            device_type = inner_pad.get("device_type", "")
+            device = inner_pad.get("device", "")
             
             # Calculate pin label position for inner pads (move inward) and direction (opposite to outer)
             if orient == "R0":  # Bottom edge inner pad

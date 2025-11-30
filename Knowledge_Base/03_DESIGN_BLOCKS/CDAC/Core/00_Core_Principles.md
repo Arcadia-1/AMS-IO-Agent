@@ -2,11 +2,11 @@
 
 ## Overview
 
-This document defines the core principles that apply to **all capacitor design workflows** regardless of capacitor shape or technology node. These principles must be strictly enforced in all automation implementations.
+This document defines the core principles that apply to all capacitor design workflows regardless of capacitor shape or technology node. These principles should be enforced in all automation implementations.
 
 ---
 
-## Core Principles (must be strictly enforced)
+## Core Principles
 
 1. **Execute step-by-step with single-step outputs and checks**
    - Each step produces independent outputs and records paths
@@ -26,7 +26,7 @@ This document defines the core principles that apply to **all capacitor design w
    - Console logs and comments should be in English
    - Documentation and reports should be in English
 
-5. **Must complete 5 iterations or meet ±1% error before ending**
+5. **Complete 5 iterations or meet ±1% error before ending**
    - Do not call `final_answer()` earlier
    - Iteration limit: maximum 5 rounds
    - Early termination only if absolute relative error ≤ 1%
@@ -35,33 +35,33 @@ This document defines the core principles that apply to **all capacitor design w
    - No early stop until convergence criterion is met
    - Continue tuning parameters until error ≤ 1% or iteration limit reached
 
-7. **⚠️ CRITICAL: No user interaction (usr_input) during runs - Automatic Continuation**
+7. **No user interaction during runs - Automatic Continuation**
    - The flow must be fully automated
    - All required inputs (library names, cell names) must be collected before starting the automated workflow
-   - **MANDATORY**: The program MUST automatically continue to the next iteration round without stopping or waiting for user input, unless:
+   - The program should automatically continue to the next iteration round without stopping or waiting for user input, unless:
      - Convergence achieved (absolute relative error ≤ 1%)
      - Iteration limit reached (5 rounds completed)
-     - Truly blocking issue (information completely missing AND cannot be inferred)
-   - **DO NOT pause for user input** during iteration loops
-   - **DO NOT stop or display "[User prompt]:"** between iteration rounds
-   - **DO NOT call `final_answer()`** inside the iteration loop - only after convergence or 5 rounds
-   - Execute all rounds automatically in sequence: generate → DRC → PEX → evaluate → update params → **immediately proceed to next round**
+     - Truly blocking issue (information completely missing and cannot be inferred)
+   - Do not pause for user input during iteration loops
+   - Do not stop or display "[User prompt]:" between iteration rounds
+   - Do not call `final_answer()` inside the iteration loop - only after convergence or 5 rounds
+   - Execute all rounds automatically in sequence: generate → DRC → PEX → evaluate → update params → immediately proceed to next round
 
 8. **Intent-first, minimal questioning**
    - Interpret user intent from natural language and map it to phases (Unit/Dummy/Array)
    - Ask only for inputs that are strictly required for the current phase(s)
    - Prefer executing with defaults derived from configs/previous context instead of broad questionnaires
 
-9. **⚠️ CRITICAL: Lazy Knowledge Loading (Step-by-Step Loading)**
-   - **DO NOT preload all knowledge modules at the start** - only load what's needed for the current step
-   - **Universal modules** can be loaded early as they apply to all phases
-   - **Phase-specific modules** MUST be loaded ONLY when reaching the corresponding workflow step:
-     - **Phase 1**: Load phase-specific modules ONLY when starting the phase
-     - **Phase 2**: Load phase-specific modules ONLY when transitioning from Phase 1 to Phase 2
-     - **Phase 3**: Load phase-specific modules ONLY when starting Phase 3
-   - **Plan-based loading**: You can identify which modules will be needed and add them to the execution plan, but DO NOT load them until the corresponding step is reached
-   - **Rationale**: Avoid knowledge overload, reduce generation errors, and maintain focus on the current task
-   - **Exception**: Universal principles can be loaded early as they are foundational
+9. **Lazy Knowledge Loading (Step-by-Step Loading)**
+   - Do not preload all knowledge modules at the start - only load what's needed for the current step
+   - Universal modules can be loaded early as they apply to all phases
+   - Phase-specific modules should be loaded only when reaching the corresponding workflow step:
+     - Phase 1: Load phase-specific modules only when starting the phase
+     - Phase 2: Load phase-specific modules only when transitioning from Phase 1 to Phase 2
+     - Phase 3: Load phase-specific modules only when starting Phase 3
+   - Plan-based loading: You can identify which modules will be needed and add them to the execution plan, but do not load them until the corresponding step is reached
+   - Rationale: Avoid knowledge overload, reduce generation errors, and maintain focus on the current task
+   - Exception: Universal principles can be loaded early as they are foundational
 
 ---
 
@@ -84,7 +84,7 @@ When calling `final_answer()` at the end of Phase 1, summarize:
 - Best iteration selection
 - Final parameters
 
-**Do not call `final_answer()` early** - wait until 5 rounds complete or ±1% target met.
+Do not call `final_answer()` early - wait until 5 rounds complete or ±1% target met.
 
 ---
 
@@ -94,4 +94,3 @@ When calling `final_answer()` at the end of Phase 1, summarize:
 - **02_Python_SKILL_Integration.md**: Technical implementation details
 - **Shape-specific modules**: Application of these principles to specific capacitor shapes
 - **Technology_Configs/**: Technology-specific constraints and parameters
-

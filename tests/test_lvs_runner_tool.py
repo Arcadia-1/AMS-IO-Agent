@@ -10,6 +10,20 @@ Options:
     -r, --run          Run LVS check
     -a, --all          Show design information and run LVS check (default behavior)
     -q, --quiet        Quiet mode, show only error messages
+    --lib LIB          Target library name (optional)
+    --cell CELL        Target cell name (optional)
+    --view VIEW        Target view name (default: layout)
+    --tech TECH        Technology node: T28 or T180 (default: T28)
+
+Examples:
+    # Run LVS on specific design with T28
+    python test_lvs_runner_tool.py --lib LLM_Layout_Design --cell test1 --tech T28
+    
+    # Run LVS on specific design with T180
+    python test_lvs_runner_tool.py --lib LLM_Layout_Design --cell test1 --tech T180
+    
+    # Show help
+    python test_lvs_runner_tool.py --help
 """
 
 import unittest
@@ -48,16 +62,16 @@ def show_design_info(quiet=False, lib=None, cell=None, view="layout"):
         print(f"View: {view2}")
     return True
 
-def run_lvs_check(quiet=False, lib=None, cell=None, view="layout"):
+def run_lvs_check(quiet=False, lib=None, cell=None, view="layout", tech_node="T28"):
     """Run LVS check"""
     if not quiet:
         print("\n2. Running LVS check:")
     
     # If lib/cell/view provided, run on the specified cellView; otherwise use defaults/current design
     if lib and cell:
-        result = run_lvs(cell=cell, lib=lib, view=view)
+        result = run_lvs(cell=cell, lib=lib, view=view, tech_node=tech_node)
     else:
-        result = run_lvs()
+        result = run_lvs(tech_node=tech_node)
     print(result)
     
     # Check if LVS execution failed
@@ -75,6 +89,7 @@ def main():
     parser.add_argument('--lib', dest='lib', default=None, help='Target library name to run on (optional)')
     parser.add_argument('--cell', dest='cell', default=None, help='Target cell name to run on (optional)')
     parser.add_argument('--view', dest='view', default='layout', help='Target view name (default: layout)')
+    parser.add_argument('--tech', dest='tech_node', default='T28', choices=['T28', 'T180'], help='Technology node (default: T28)')
     
     args = parser.parse_args()
     
@@ -94,7 +109,7 @@ def main():
     # Run LVS check
     if args.run or args.all:
         if success:  # Only run LVS if design information was successfully obtained
-            success = run_lvs_check(args.quiet, lib=args.lib, cell=args.cell, view=args.view) and success
+            success = run_lvs_check(args.quiet, lib=args.lib, cell=args.cell, view=args.view, tech_node=args.tech_node) and success
     
     if not args.quiet:
         if success:

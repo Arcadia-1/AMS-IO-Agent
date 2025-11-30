@@ -44,6 +44,17 @@ def run_il_file(il_file_path: str, lib: Optional[str] = None, cell: Optional[str
                 return f"❌ Error: Failed to open window for {lib}/{cell}/{view}"
             ui_redraw(timeout=10)
             sleep(0.5)
+        else:
+            # If lib/cell not provided, try to get current cellView and set cv variable
+            # This is needed because IL files often use 'cv' variable
+            try:
+                cv_result = rb_exec('geGetEditCellView()', timeout=10)
+                if not cv_result or cv_result.strip().lower() in {'nil', 'none', ''}:
+                    return f"❌ Error: No cellView is currently open. Please specify --lib and --cell options, or open a cellView in Virtuoso first."
+                # Set cv variable for IL file to use
+                rb_exec('cv = geGetEditCellView()', timeout=10)
+            except Exception as e:
+                return f"❌ Error: Failed to get current cellView: {e}. Please specify --lib and --cell options."
         # Check if file exists
         skill_path = Path(il_file_path)
         
@@ -235,6 +246,19 @@ def run_il_with_screenshot(il_file_path: str, screenshot_path: Optional[str] = N
                 return json.dumps(result_dict, ensure_ascii=False)
             ui_redraw(timeout=10)
             sleep(0.5)
+        else:
+            # If lib/cell not provided, try to get current cellView and set cv variable
+            # This is needed because IL files often use 'cv' variable
+            try:
+                cv_result = rb_exec('geGetEditCellView()', timeout=10)
+                if not cv_result or cv_result.strip().lower() in {'nil', 'none', ''}:
+                    result_dict["message"] = f"❌ Error: No cellView is currently open. Please specify --lib and --cell options, or open a cellView in Virtuoso first."
+                    return json.dumps(result_dict, ensure_ascii=False)
+                # Set cv variable for IL file to use
+                rb_exec('cv = geGetEditCellView()', timeout=10)
+            except Exception as e:
+                result_dict["message"] = f"❌ Error: Failed to get current cellView: {e}. Please specify --lib and --cell options."
+                return json.dumps(result_dict, ensure_ascii=False)
 
         # Check if file exists
         skill_path = Path(il_file_path)
@@ -299,7 +323,7 @@ def run_il_with_screenshot(il_file_path: str, screenshot_path: Optional[str] = N
             filename = f"virtuoso_{skill_path.stem}_{timestamp}.png"
             save_path = str(save_dir.resolve() / filename)
         # Expand user (~) and convert to an absolute path so downstream bridge helpers get a full path
-        screenshot_script = str(Path("skill_tools/screenshot.il").expanduser().resolve(strict=False))
+        screenshot_script = str(Path("src/skill/screenshot.il").expanduser().resolve(strict=False))
         if load_script_and_take_screenshot(screenshot_script, save_path, timeout=20):
             result_dict["status"] = "success"
             result_dict["message"] = f"✅ il file {skill_path.name} executed successfully"
@@ -378,7 +402,7 @@ def screenshot_current_window(lib: Optional[str] = None, cell: Optional[str] = N
         save_path = str(save_dir.resolve() / filename)
 
         # Take screenshot via unified helper (works for both bridges)
-        screenshot_script_path = Path("skill_tools/screenshot.il")
+        screenshot_script_path = Path("src/skill/screenshot.il")
         screenshot_script = os.path.abspath(screenshot_script_path)
         ok, err = load_script_and_take_screenshot_verbose(screenshot_script, save_path, timeout=20)
         if ok:

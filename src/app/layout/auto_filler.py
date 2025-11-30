@@ -22,12 +22,12 @@ class AutoFillerGenerator:
     def auto_insert_fillers_with_inner_pads(self, layout_components: List[dict], inner_pads: List[dict]) -> List[dict]:
         """Auto-insert filler components, supporting inner pad space reservation, compatible with clockwise and counterclockwise placement"""
         # Check if filler components are already included
-        existing_fillers = [comp for comp in layout_components if comp.get("type") == "filler" or DeviceClassifier.is_filler_device(comp.get("device_type", ""))]
-        existing_separators = [comp for comp in layout_components if comp.get("type") == "separator" or DeviceClassifier.is_separator_device(comp.get("device_type", ""))]
+        existing_fillers = [comp for comp in layout_components if comp.get("type") == "filler" or DeviceClassifier.is_filler_device(comp.get("device", ""))]
+        existing_separators = [comp for comp in layout_components if comp.get("type") == "separator" or DeviceClassifier.is_separator_device(comp.get("device", ""))]
         
         if existing_fillers or existing_separators:
-            print(f"🔍 Detected filler components in JSON: {len(existing_fillers)} fillers, {len(existing_separators)} separators")
-            print("📝 Skipping auto-filler generation, using components defined in JSON")
+            print(f"🔍 Detected filler components in intent graph: {len(existing_fillers)} fillers, {len(existing_separators)} separators")
+            print("📝 Skipping auto-filler generation, using components defined in intent graph")
             return layout_components
         
         # Get placement order
@@ -135,7 +135,7 @@ class AutoFillerGenerator:
                 fillers.append({
                     "type": "filler",
                     "name": "sep_top_left_corner",
-                    "device_type": filler_type,
+                    "device": filler_type,
                     "position": [x, y],
                     "orientation": "R180"
                 })
@@ -149,7 +149,7 @@ class AutoFillerGenerator:
                 fillers.append({
                     "type": "filler",
                     "name": "filler_top_right_corner",
-                    "device_type": filler_type,
+                    "device": filler_type,
                     "position": [x, y],
                     "orientation": "R180"
                 })
@@ -164,7 +164,7 @@ class AutoFillerGenerator:
                 fillers.append({
                     "type": "filler",
                     "name": "filler_right_top_corner",
-                    "device_type": filler_type,
+                    "device": filler_type,
                     "position": [x, y],
                     "orientation": "R90"
                 })
@@ -178,7 +178,7 @@ class AutoFillerGenerator:
                 fillers.append({
                     "type": "filler",
                     "name": "filler_right_bottom_corner",
-                    "device_type": filler_type,
+                    "device": filler_type,
                     "position": [x, y],
                     "orientation": "R90"
                 })
@@ -193,7 +193,7 @@ class AutoFillerGenerator:
                 fillers.append({
                     "type": "filler",
                     "name": "sep_bottom_right_corner",
-                    "device_type": filler_type,
+                    "device": filler_type,
                     "position": [x, y],
                     "orientation": "R0"
                 })
@@ -207,7 +207,7 @@ class AutoFillerGenerator:
                 fillers.append({
                     "type": "filler",
                     "name": "filler_bottom_left_corner",
-                    "device_type": filler_type,
+                    "device": filler_type,
                     "position": [x, y],
                     "orientation": "R0"
                 })
@@ -222,7 +222,7 @@ class AutoFillerGenerator:
                 fillers.append({
                     "type": "filler",
                     "name": "filler_left_bottom_corner",
-                    "device_type": filler_type,
+                    "device": filler_type,
                     "position": [x, y],
                     "orientation": "R270"
                 })
@@ -236,7 +236,7 @@ class AutoFillerGenerator:
                 fillers.append({
                     "type": "filler",
                     "name": "sep_left_top_corner",
-                    "device_type": filler_type,
+                    "device": filler_type,
                     "position": [x, y],
                     "orientation": "R270"
                 })
@@ -291,7 +291,7 @@ class AutoFillerGenerator:
                     fillers.append({
                         "type": "filler",
                         "name": f"filler_{orientation}_{i+1}_1",
-                        "device_type": filler_type,
+                        "device": filler_type,
                         "position": [x1, y1],
                         "orientation": orientation
                     })
@@ -313,7 +313,7 @@ class AutoFillerGenerator:
                     fillers.append({
                         "type": "filler",
                         "name": f"filler_{orientation}_{i+1}_2",
-                        "device_type": filler_type,
+                        "device": filler_type,
                         "position": [x2, y2],
                         "orientation": orientation
                     })
@@ -325,7 +325,7 @@ class AutoFillerGenerator:
                     fillers.append({
                         "type": "filler",
                         "name": f"filler_{orientation}_{i+1}_1",
-                        "device_type": filler_type,
+                        "device": filler_type,
                         "position": [x, y],
                         "orientation": orientation
                     })
@@ -347,7 +347,7 @@ class AutoFillerGenerator:
                     fillers.append({
                         "type": "filler",
                         "name": f"filler_{orientation}_{i+1}_2",
-                        "device_type": filler_type,
+                        "device": filler_type,
                         "position": [x2, y2],
                         "orientation": orientation
                     })

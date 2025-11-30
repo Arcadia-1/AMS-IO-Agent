@@ -11,12 +11,12 @@ from pathlib import Path
 tools_dir = Path(__file__).parent.parent
 sys.path.append(str(tools_dir))
 
-from src.tools.io_ring_generator_tool import generate_io_ring_schematic, list_io_ring_configs, validate_io_ring_config, generate_io_ring_layout
+from src.tools.io_ring_generator_tool import generate_io_ring_schematic, list_intent_graphs, validate_intent_graph, generate_io_ring_layout
 
 def test_list_configs():
     """Test list configuration files functionality"""
     print("🔍 Testing list IO ring configuration files...")
-    result = list_io_ring_configs()
+    result = list_intent_graphs()
     print(result)
     print()
 
@@ -25,7 +25,7 @@ def test_validate_config():
     print("✅ Testing configuration validation functionality...")
     
     # Test simple configuration
-    result = validate_io_ring_config("output/example/io_ring_config.json")
+    result = validate_intent_graph("output/example/intent_graph.json")
     print()
 
 def test_generate_schematic():
@@ -34,7 +34,7 @@ def test_generate_schematic():
     
     # Test 3: Specify complete output path
     print("Test 3: Specify complete output path")
-    result = generate_io_ring_schematic("output/example/io_ring_config.json", "output/example/io_ring_schematic.il")
+    result = generate_io_ring_schematic("output/example/intent_graph.json", "output/example/io_ring_schematic.il")
     print(result)
     print()
 
@@ -46,7 +46,7 @@ def test_generate_layout():
     
     # Test 3: Specify complete output path
     print("Test 3: Specify complete output path")
-    result = generate_io_ring_layout("output/example/io_ring_config.json", "output/example/io_ring_layout.il")
+    result = generate_io_ring_layout("output/example/intent_graph.json", "output/example/io_ring_layout.il")
     print(result)
     print()
 

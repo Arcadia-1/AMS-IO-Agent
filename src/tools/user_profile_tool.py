@@ -24,6 +24,11 @@ def get_profile_path(username: Optional[str] = None) -> Path:
             profile_path = PROJECT_ROOT / profile_path
         return profile_path
     
+    # Try default_user_profile.md first (if exists), then username-based profile
+    default_profile = PROFILE_DIR / "default_user_profile.md"
+    if default_profile.exists():
+        return default_profile
+    
     if username is None:
         username = os.getenv("USER_PROFILE_NAME", "default_user")
     return PROFILE_DIR / f"{username}_profile.md"
@@ -45,12 +50,18 @@ def read_profile(username: Optional[str] = None) -> str:
                 print(f"⚠️  Failed to copy default profile: {e}")
                 return ""
         else:
+            # Show warning if profile file doesn't exist
+            print(f"⚠️  Warning: User profile file not found: {profile_path}")
+            if not default_profile_path.exists():
+                print(f"   Default profile also not found: {default_profile_path}")
+                print(f"   You can create a profile file at: {profile_path}")
             return ""
     
     try:
         with open(profile_path, 'r', encoding='utf-8') as f:
             return f.read()
-    except Exception:
+    except Exception as e:
+        print(f"⚠️  Error reading profile file {profile_path}: {e}")
         return ""
 
 

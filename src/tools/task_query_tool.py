@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Task Query Tool - Agent 可用的任务查询工具
+Task Query Tool - Task query utility available to Agent
 """
 
 from smolagents import tool
-from ..utils.simple_task_logger import get_task_logger
+from src.app.utils.simple_task_logger import get_task_logger
 
 
 @tool
@@ -106,7 +106,7 @@ def get_task_summary() -> str:
     result.append(f"Avg duration: {stats['avg_duration']}")
     result.append("")
     
-    # 最常用工具
+    # Most used tools
     top_tools = logger.get_most_used_tools(5)
     if top_tools:
         result.append("Most used tools:")
@@ -129,10 +129,10 @@ def compare_with_tool_stats() -> str:
     task_logger = get_task_logger()
     tool_tracker = get_tracker()
     
-    # 任务级别统计
+    # Task-level statistics
     task_stats = task_logger.get_task_stats()
     
-    # 工具级别统计
+    # Tool-level statistics
     tool_stats = tool_tracker.get_all_stats()
     
     if task_stats["total_tasks"] == 0:
@@ -149,7 +149,7 @@ def compare_with_tool_stats() -> str:
         result.append(f"Tool level:")
         result.append(f"  • Total tools tracked: {len(tool_stats)}")
         
-        # 找出在失败任务中常用的工具
+        # Find tools frequently used in failed tasks
         failure_analysis = task_logger.analyze_failures()
         if "tools_in_failed_tasks" in failure_analysis:
             result.append("")

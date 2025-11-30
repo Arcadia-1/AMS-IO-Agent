@@ -28,4 +28,3 @@ Each error document should include:
 ## Usage
 
 The agent should read this directory at startup to learn from past errors and avoid repeating them.
-

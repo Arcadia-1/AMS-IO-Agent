@@ -102,7 +102,7 @@ class InnerPadHandler:
         
         for i, inner_pad in enumerate(inner_pads):
             name = inner_pad["name"]
-            device_type = inner_pad["device_type"]
+            device = inner_pad["device"]
             
             # If position is already absolute coordinates, use directly
             if isinstance(inner_pad["position"], list):
@@ -116,7 +116,9 @@ class InnerPadHandler:
             x, y = position
             position_str = inner_pad["position_str"]
             # Generate SKILL commands for inner pads
-            skill_commands.append(f'dbCreateParamInstByMasterName(cv "{ring_config["library_name"]}" "{device_type}" "{ring_config["view_name"]}" "inner_pad_{name}_{position_str}" list({x} {y}) "{orientation}")')
+            library_name = ring_config.get("library_name", "tphn28hpcpgv18")
+            view_name = ring_config.get("view_name", "layout")
+            skill_commands.append(f'dbCreateParamInstByMasterName(cv "{library_name}" "{device}" "{view_name}" "inner_pad_{name}_{position_str}" list({x} {y}) "{orientation}")')
             skill_commands.append(f'dbCreateParamInstByMasterName(cv "PAD" "PAD60NU" "layout" "inner_pad60nu_{name}_{position_str}" list({x} {y}) "{orientation}")')
         
         return skill_commands
@@ -127,19 +129,19 @@ class InnerPadHandler:
         
         # Outer ring digital IO pads
         for pad in outer_pads:
-            if DeviceClassifier.is_digital_io_device(pad["device_type"]):
+            if DeviceClassifier.is_digital_io_device(pad["device"]):
                 digital_pads.append({
                     "position": pad["position"],
                     "orientation": pad["orientation"],
                     "name": pad["name"],
-                    "device_type": pad["device_type"],
+                    "device": pad["device"],
                     "io_direction": pad.get("io_direction", "unknown"),
                     "is_inner": False
                 })
         
         # Inner ring digital IO pads
         for inner_pad in inner_pads:
-            if DeviceClassifier.is_digital_io_device(inner_pad["device_type"]):
+            if DeviceClassifier.is_digital_io_device(inner_pad["device"]):
                 # If position is already absolute coordinates, use directly
                 if isinstance(inner_pad["position"], list):
                     position = inner_pad["position"]
@@ -152,7 +154,7 @@ class InnerPadHandler:
                     "position": position,
                     "orientation": orientation,
                     "name": inner_pad["name"],
-                    "device_type": inner_pad["device_type"],
+                    "device": inner_pad["device"],
                     "io_direction": inner_pad.get("io_direction", "unknown"),
                     "is_inner": True
                 })
@@ -164,18 +166,18 @@ class InnerPadHandler:
         digital_pads = []
         # Outer ring digital pads
         for pad in outer_pads:
-            if DeviceClassifier.is_digital_device(pad["device_type"]):
+            if DeviceClassifier.is_digital_device(pad["device"]):
                 digital_pads.append({
                     "position": pad["position"],
                     "orientation": pad["orientation"],
                     "name": pad["name"],
-                    "device_type": pad["device_type"],
+                    "device": pad["device"],
                     "io_direction": pad.get("io_direction", "unknown"),
                     "is_inner": False
                 })
         # Inner ring digital pads
         for inner_pad in inner_pads:
-            if DeviceClassifier.is_digital_device(inner_pad["device_type"]):
+            if DeviceClassifier.is_digital_device(inner_pad["device"]):
                 if isinstance(inner_pad["position"], list):
                     position = inner_pad["position"]
                     orientation = inner_pad["orientation"]
@@ -185,7 +187,7 @@ class InnerPadHandler:
                     "position": position,
                     "orientation": orientation,
                     "name": inner_pad["name"],
-                    "device_type": inner_pad["device_type"],
+                    "device": inner_pad["device"],
                     "io_direction": inner_pad.get("io_direction", "unknown"),
                     "is_inner": True
                 })

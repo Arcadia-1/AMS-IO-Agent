@@ -30,16 +30,18 @@ def find_latest_il_file():
     """Find the latest IL file"""
     dir_path = Path("output")
     
-    # Find all timestamp directories
+    # Recursively find all timestamp directories
     timestamp_dirs = []
-    for item in dir_path.iterdir():
-        if item.is_dir() and item.name.replace('_', '').isdigit():
-            # Check if it's a timestamp format directory
-            try:
-                datetime.strptime(item.name, "%Y%m%d_%H%M%S")
-                timestamp_dirs.append(item)
-            except ValueError:
-                continue
+    if dir_path.exists():
+        # Recursively search for all directories that match timestamp format
+        for item in dir_path.rglob("*"):
+            if item.is_dir() and item.name.replace('_', '').isdigit():
+                # Check if it's a timestamp format directory
+                try:
+                    datetime.strptime(item.name, "%Y%m%d_%H%M%S")
+                    timestamp_dirs.append(item)
+                except ValueError:
+                    continue
     
     if not timestamp_dirs:
         print("   ⚠️  No timestamp directories found")

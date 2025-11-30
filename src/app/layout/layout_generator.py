@@ -91,15 +91,15 @@ class LayoutGenerator:
         
         for component in layout_components:
             component_type = component.get("type", "unknown")
-            device_type = component.get("device_type", "")
+            device = component.get("device", "")
             
-            if component_type == "corner" or DeviceClassifier.is_corner_device(device_type):
+            if component_type == "corner" or DeviceClassifier.is_corner_device(device):
                 corners.append(component)
             elif component_type == "pad":
                 pads.append(component)
-            elif component_type == "filler" or DeviceClassifier.is_filler_device(device_type):
+            elif component_type == "filler" or DeviceClassifier.is_filler_device(device):
                 fillers.append(component)
-            elif component_type == "separator" or DeviceClassifier.is_separator_device(device_type):
+            elif component_type == "separator" or DeviceClassifier.is_separator_device(device):
                 separators.append(component)
             else:
                 others.append(component)
@@ -109,12 +109,12 @@ class LayoutGenerator:
             skill_commands.append("; ==================== Corner Components ====================")
             for i, corner in enumerate(corners):
                 name = corner.get("name", f"corner_{i+1}")
-                device_type = corner.get("device_type", "PCORNERA_G")
+                device = corner.get("device", "PCORNERA_G")
                 x, y = corner.get("position", [0, 0])
                 orientation = corner.get("orientation", "R0")
                 
                 skill_commands.append(
-                    f'dbCreateParamInstByMasterName(cv "{self.config["library_name"]}" "{device_type}" '
+                    f'dbCreateParamInstByMasterName(cv "{self.config["library_name"]}" "{device}" '
                     f'"{self.config["view_name"]}" "{name}" list({x} {y}) "{orientation}")'
                 )
             skill_commands.append("")
@@ -124,12 +124,12 @@ class LayoutGenerator:
             skill_commands.append("; ==================== Pad Components ====================")
             for i, pad in enumerate(pads):
                 name = pad.get("name", f"pad_{i+1}")
-                device_type = pad.get("device_type", "PDB3AC_V_G")
+                device = pad.get("device", "PDB3AC_V_G")
                 x, y = pad.get("position", [0, 0])
                 orientation = pad.get("orientation", "R0")
                 
                 skill_commands.append(
-                    f'dbCreateParamInstByMasterName(cv "{self.config["library_name"]}" "{device_type}" '
+                    f'dbCreateParamInstByMasterName(cv "{self.config["library_name"]}" "{device}" '
                     f'"{self.config["view_name"]}" "{name}" list({x} {y}) "{orientation}")'
                 )
                 
@@ -145,12 +145,12 @@ class LayoutGenerator:
             skill_commands.append("; ==================== Filler Components ====================")
             for i, filler in enumerate(fillers):
                 name = filler.get("name", f"filler_{i+1}")
-                device_type = filler.get("device_type", "PFILLER20A_G")
+                device = filler.get("device", "PFILLER20A_G")
                 x, y = filler.get("position", [0, 0])
                 orientation = filler.get("orientation", "R0")
                 
                 skill_commands.append(
-                    f'dbCreateParamInstByMasterName(cv "{self.config["library_name"]}" "{device_type}" '
+                    f'dbCreateParamInstByMasterName(cv "{self.config["library_name"]}" "{device}" '
                     f'"{self.config["view_name"]}" "{name}" list({x} {y}) "{orientation}")'
                 )
             skill_commands.append("")
@@ -160,12 +160,12 @@ class LayoutGenerator:
             skill_commands.append("; ==================== Separator Components ====================")
             for i, separator in enumerate(separators):
                 name = separator.get("name", f"separator_{i+1}")
-                device_type = separator.get("device_type", "PRCUTA_G")
+                device = separator.get("device", "PRCUTA_G")
                 x, y = separator.get("position", [0, 0])
                 orientation = separator.get("orientation", "R0")
                 
                 skill_commands.append(
-                    f'dbCreateParamInstByMasterName(cv "{self.config["library_name"]}" "{device_type}" '
+                    f'dbCreateParamInstByMasterName(cv "{self.config["library_name"]}" "{device}" '
                     f'"{self.config["view_name"]}" "{name}" list({x} {y}) "{orientation}")'
                 )
             skill_commands.append("")
@@ -175,18 +175,18 @@ class LayoutGenerator:
             skill_commands.append("; ==================== Other Components ====================")
             for i, other in enumerate(others):
                 name = other.get("name", f"other_{i+1}")
-                device_type = other.get("device_type", "PDB3AC_V_G")
+                device = other.get("device", "PDB3AC_V_G")
                 x, y = other.get("position", [0, 0])
                 orientation = other.get("orientation", "R0")
                 
                 skill_commands.append(
-                    f'dbCreateParamInstByMasterName(cv "{self.config["library_name"]}" "{device_type}" '
+                    f'dbCreateParamInstByMasterName(cv "{self.config["library_name"]}" "{device}" '
                     f'"{self.config["view_name"]}" "{name}" list({x} {y}) "{orientation}")'
                 )
             skill_commands.append("")
         
         # 6. Digital IO features (if there are digital IO pads)
-        digital_io_pads = [pad for pad in pads if DeviceClassifier.is_digital_io_device(pad.get("device_type", ""))]
+        digital_io_pads = [pad for pad in pads if DeviceClassifier.is_digital_io_device(pad.get("device", ""))]
         if digital_io_pads:
             skill_commands.append("; ==================== Digital IO Features ====================")
             digital_lines = self.generate_digital_io_features_for_pads(digital_io_pads)
@@ -231,12 +231,12 @@ class LayoutGenerator:
         for instance in instances:
             relative_pos = instance.get("position", "")
             name = instance.get("name", "")
-            device_type = instance.get("device_type", "")
+            device = instance.get("device", "")
             component_type = instance.get("type", "pad")
             io_direction = instance.get("io_direction", "")
-            io_type = instance.get("io_type", "")  # New IO direction format
+            direction = instance.get("direction", "")  # New IO direction format
             voltage_domain = instance.get("voltage_domain", {})
-            pin_config = instance.get("pin_config", {})
+            pin_connection = instance.get("pin_connection", {})
             
             # Only check type field
             if component_type == "inner_pad":
@@ -255,7 +255,7 @@ class LayoutGenerator:
             component = {
                 "type": component_type,
                 "name": name,
-                "device_type": device_type,
+                "device": device,
                 "position": position,
                 "orientation": orientation
             }
@@ -264,9 +264,9 @@ class LayoutGenerator:
             if relative_pos:
                 component["position_str"] = relative_pos
             
-            # Handle IO direction (prioritize io_type, fall back to io_direction)
-            if io_type:
-                component["io_direction"] = io_type
+            # Handle IO direction (prioritize direction, fall back to io_direction)
+            if direction:
+                component["io_direction"] = direction
             elif io_direction:
                 component["io_direction"] = io_direction
             
@@ -274,20 +274,20 @@ class LayoutGenerator:
             if voltage_domain:
                 component["voltage_domain"] = voltage_domain
             
-            # If pin_config exists, add to configuration
-            if pin_config:
-                component["pin_config"] = pin_config
+            # If pin_connection exists, add to configuration
+            if pin_connection:
+                component["pin_connection"] = pin_connection
             
             converted_components.append(component)
         
         # Check if corner components are missing
         has_corners = any(comp.get("type") == "corner" for comp in converted_components)
         if not has_corners:
-            raise ValueError("❌ Error: Corner components are missing in the JSON configuration! Please explicitly specify corner components in the 'instances' list.\n"
+            raise ValueError("❌ Error: Corner components are missing in the intent graph! Please explicitly specify corner components in the 'instances' list.\n"
                            "Example:\n"
                            "{\n"
                            '  "name": "top_left_corner",\n'
-                           '  "device_type": "PCORNER_G",\n'
+                           '  "device": "PCORNER_G",\n'
                            '  "position": "top_left",\n'
                            '  "type": "corner"\n'
                            "}")
@@ -295,12 +295,12 @@ class LayoutGenerator:
         # Handle inner pad position calculation
         for inner_pad in inner_pads:
             name = inner_pad.get("name", "")
-            device_type = inner_pad.get("device_type", "")
+            device = inner_pad.get("device", "")
             position_str = inner_pad.get("position", "")
             io_direction = inner_pad.get("io_direction", "")
-            io_type = inner_pad.get("io_type", "")
+            direction = inner_pad.get("direction", "")
             voltage_domain = inner_pad.get("voltage_domain", {})
-            pin_config = inner_pad.get("pin_config", {})
+            pin_connection = inner_pad.get("pin_connection", {})
             
             # Only use outer pads for sorting and indexing
             outer_pads_for_inner = [comp for comp in converted_components if comp.get("type") == "pad" and not comp.get("inner_pad", False)]
@@ -310,15 +310,15 @@ class LayoutGenerator:
             component = {
                 "type": "inner_pad",
                 "name": name,
-                "device_type": device_type,
+                "device": device,
                 "position": position,
                 "orientation": orientation,
                 "position_str": position_str  # Save original position string
             }
             
             # Handle IO direction
-            if io_type:
-                component["io_direction"] = io_type
+            if direction:
+                component["io_direction"] = direction
             elif io_direction:
                 component["io_direction"] = io_direction
             
@@ -326,9 +326,9 @@ class LayoutGenerator:
             if voltage_domain:
                 component["voltage_domain"] = voltage_domain
             
-            # If pin_config exists, add to configuration
-            if pin_config:
-                component["pin_config"] = pin_config
+            # If pin_connection exists, add to configuration
+            if pin_connection:
+                component["pin_connection"] = pin_connection
             
             converted_components.append(component)
         
@@ -351,7 +351,7 @@ def generate_layout_from_config(config_list: List[dict], output_file: str = "gen
 
 def generate_layout_from_json(json_file: str, output_file: str = "generated_layout.il"):
     """Generate layout from a JSON file, supporting inner pads in instances"""
-    print(f"📖 Reading JSON configuration file: {json_file}")
+    print(f"📖 Reading intent graph file: {json_file}")
     
     with open(json_file, 'r', encoding='utf-8') as f:
         config = json.load(f)
@@ -359,6 +359,13 @@ def generate_layout_from_json(json_file: str, output_file: str = "generated_layo
     # Get outer pad configuration
     instances = config.get("instances", [])
     ring_config = config.get("ring_config", {})
+    
+    # Merge top-level library_name and cell_name into ring_config if they exist
+    # This allows intent graphs to have library_name/cell_name at top level or in ring_config
+    if "library_name" in config and "library_name" not in ring_config:
+        ring_config["library_name"] = config["library_name"]
+    if "cell_name" in config and "cell_name" not in ring_config:
+        ring_config["cell_name"] = config["cell_name"]
     
     # Set configuration
     generator = LayoutGenerator()
@@ -371,6 +378,11 @@ def generate_layout_from_json(json_file: str, output_file: str = "generated_layo
         ring_config["corner_size"] = generator.config["corner_size"]
     if "pad_spacing" not in ring_config:
         ring_config["pad_spacing"] = generator.config["pad_spacing"]
+    # Ensure library_name and view_name have defaults if not provided
+    if "library_name" not in ring_config:
+        ring_config["library_name"] = generator.config["library_name"]
+    if "view_name" not in ring_config:
+        ring_config["view_name"] = generator.config["view_name"]
     
     print("✅ Configuration parameters set")
     
@@ -404,8 +416,8 @@ def generate_layout_from_json(json_file: str, output_file: str = "generated_layo
     
     # Check if filler components are already present in instances
     all_instances = instances  # Original instances list
-    existing_fillers = [comp for comp in all_instances if comp.get("type") == "filler" or DeviceClassifier.is_filler_device(comp.get("device_type", ""))]
-    existing_separators = [comp for comp in all_instances if comp.get("type") == "separator" or DeviceClassifier.is_separator_device(comp.get("device_type", ""))]
+    existing_fillers = [comp for comp in all_instances if comp.get("type") == "filler" or DeviceClassifier.is_filler_device(comp.get("device", ""))]
+    existing_separators = [comp for comp in all_instances if comp.get("type") == "separator" or DeviceClassifier.is_separator_device(comp.get("device", ""))]
     
     if existing_fillers or existing_separators:
         print(f"🔍 Detected filler components in JSON: {len(existing_fillers)} fillers, {len(existing_separators)} separators")
@@ -434,12 +446,12 @@ def generate_layout_from_json(json_file: str, output_file: str = "generated_layo
     for i, component in enumerate(sorted_components):
         x, y = component["position"]
         orientation = component["orientation"]
-        device_type = component["device_type"]
+        device = component["device"]
         name = component["name"]
         component_type = component["type"]
         position_str = component['position_str']
         
-        skill_commands.append(f'dbCreateParamInstByMasterName(cv "{ring_config.get("library_name", "tphn28hpcpgv18")}" "{device_type}" "{ring_config.get("view_name", "layout")}" "{name}_{position_str}" list({x} {y}) "{orientation}")')
+        skill_commands.append(f'dbCreateParamInstByMasterName(cv "{ring_config.get("library_name", "tphn28hpcpgv18")}" "{device}" "{ring_config.get("view_name", "layout")}" "{name}_{position_str}" list({x} {y}) "{orientation}")')
         
         # Add PAD60GU for pad components
         if component_type == "pad":
@@ -460,22 +472,22 @@ def generate_layout_from_json(json_file: str, output_file: str = "generated_layo
     if existing_fillers or existing_separators:
         # If JSON has fillers, extract filler components from instances
         for instance in all_instances:
-            if instance.get("type") == "filler" or DeviceClassifier.is_filler_device(instance.get("device_type", "")):
+            if instance.get("type") == "filler" or DeviceClassifier.is_filler_device(instance.get("device", "")):
                 # Use already converted absolute positions
                 position = instance.get("position", [0, 0])
                 orientation = instance.get("orientation", "R0")
-                device_type = instance.get("device_type", "")
+                device = instance.get("device", "")
                 name = instance.get("name", "")
                 x, y = position
-                skill_commands.append(f'dbCreateParamInstByMasterName(cv "{ring_config.get("library_name", "tphn28hpcpgv18")}" "{device_type}" "{ring_config.get("view_name", "layout")}" "{name}" list({x} {y}) "{orientation}")')
+                skill_commands.append(f'dbCreateParamInstByMasterName(cv "{ring_config.get("library_name", "tphn28hpcpgv18")}" "{device}" "{ring_config.get("view_name", "layout")}" "{name}" list({x} {y}) "{orientation}")')
     else:
         # If JSON does not have fillers, use auto-generated fillers
         for filler in all_components_with_fillers[len(validation_components):]:  # Only process filler part
             x, y = filler["position"]
             orientation = filler["orientation"]
-            device_type = filler["device_type"]
+            device = filler["device"]
             name = filler["name"]
-            skill_commands.append(f'dbCreateParamInstByMasterName(cv "{ring_config.get("library_name", "tphn28hpcpgv18")}" "{device_type}" "{ring_config.get("view_name", "layout")}" "{name}" list({x} {y}) "{orientation}")')
+            skill_commands.append(f'dbCreateParamInstByMasterName(cv "{ring_config.get("library_name", "tphn28hpcpgv18")}" "{device}" "{ring_config.get("view_name", "layout")}" "{name}" list({x} {y}) "{orientation}")')
     
     skill_commands.append("")
     
@@ -510,14 +522,14 @@ def generate_layout_from_json(json_file: str, output_file: str = "generated_layo
     return output_file
 
 def validate_layout_config(json_file: str) -> dict:
-    """Validate JSON configuration file"""
-    print(f"🔍 Validating JSON configuration file: {json_file}")
+    """Validate intent graph file"""
+    print(f"🔍 Validating intent graph file: {json_file}")
     
     try:
         with open(json_file, 'r', encoding='utf-8') as f:
             config_data = json.load(f)
     except FileNotFoundError:
-        return {"valid": False, "message": f"Configuration file not found: {json_file}"}
+        return {"valid": False, "message": f"Intent graph file not found: {json_file}"}
     except json.JSONDecodeError as e:
         return {"valid": False, "message": f"JSON format error - {e}"}
     

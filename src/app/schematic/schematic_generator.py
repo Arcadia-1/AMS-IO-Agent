@@ -11,11 +11,9 @@ from pathlib import Path
 from typing import Dict, Any
 
 
-# Add current directory to Python path for importing device_template_parser
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
-from device_template_parser import DeviceTemplate, DeviceTemplateManager
-from json_validator import validate_config, convert_config_to_list, get_config_statistics
+# Import device template parser from the correct location
+from src.scripts.devices.IO_device_info_T28_parser import DeviceTemplate, DeviceTemplateManager
+from src.app.intent_graph.json_validator import validate_config, convert_config_to_list, get_config_statistics
 
 class SchematicGenerator:
     def __init__(self, template_manager):
@@ -76,7 +74,7 @@ class SchematicGenerator:
                 else:
                     # Need to calculate position
                     x, y = self.calculate_position_from_description(
-                        position_desc, ring_config, inst.get('device_type'), 
+                        position_desc, ring_config, inst.get('device'), 
                         inst.get('orientation'), False, 
                         ring_config.get('placement_order') == 'clockwise'
                     )
@@ -95,9 +93,9 @@ class SchematicGenerator:
         if 'position' not in config:
             return config
         
-        # Handle io_type field, compatible with io_direction
-        if 'io_direction' in config and 'io_type' not in config:
-            config['io_type'] = config['io_direction']
+        # Handle direction field, compatible with io_direction
+        if 'io_direction' in config and 'direction' not in config:
+            config['direction'] = config['io_direction']
         
         # Handle inner ring pad identification
         if config.get('type') == 'inner_pad':
@@ -107,15 +105,15 @@ class SchematicGenerator:
         is_inner_pad = config.get('type') == 'inner_pad' or config.get('is_inner_ring', False)
         position_desc = config['position']
         
-        # If user didn't specify device_type, need to provide base type
-        if 'device_type' not in config:
-            raise ValueError("device_type must be specified")
+        # If user didn't specify device, need to provide base type
+        if 'device' not in config:
+            raise ValueError("device must be specified")
         
-        base_device_type = config['device_type']
+        base_device = config['device']
         
         # Corner points don't need suffix added
         if config.get('type') == 'corner':
-            # Corner points keep original device_type, don't add suffix
+            # Corner points keep original device, don't add suffix
             if 'orientation' not in config:
                 # Set orientation based on corner position
                 if position_desc == 'top_left':
@@ -128,11 +126,11 @@ class SchematicGenerator:
                     config['orientation'] = 'R270'
             return config
         
-        # If device_type already contains suffix, use directly
-        if base_device_type.endswith(('_H_G', '_V_G')):
-            # If user didn't specify orientation, automatically infer based on device type suffix
+        # If device already contains suffix, use directly
+        if base_device.endswith(('_H_G', '_V_G')):
+            # If user didn't specify orientation, automatically infer based on device suffix
             if 'orientation' not in config:
-                if base_device_type.endswith('_H_G'):
+                if base_device.endswith('_H_G'):
                     # Vertical device, determine orientation based on position
                     if position_desc.startswith('left'):
                         config['orientation'] = 'R270'
@@ -145,7 +143,7 @@ class SchematicGenerator:
                     else:  # bottom
                         config['orientation'] = 'R0'
         else:
-            # For device_type without suffix, automatically add suffix and orientation based on position
+            # For device without suffix, automatically add suffix and orientation based on position
             if is_inner_pad:
                 # Inner ring pad: determine suffix and orientation based on first part of position description (side)
                 if '_' in position_desc:
@@ -162,17 +160,17 @@ class SchematicGenerator:
                     suffix = '_H_G'
                     orientation = 'R180' if side == 'top' else 'R0'
                 
-                config['device_type'] = base_device_type + suffix
+                config['device'] = base_device + suffix
                 config['orientation'] = orientation
             else:
                     # Outer ring pad: use original logic
                 suffix, orientation = self.get_device_suffix_and_orientation(position_desc)
-                config['device_type'] = base_device_type + suffix
+                config['device'] = base_device + suffix
                 config['orientation'] = orientation
         
         return config
     
-    def calculate_position_from_description(self, position_desc, ring_config=None, device_type=None, orientation=None, is_inner_ring=False, clockwise=False, outer_pads=None):
+    def calculate_position_from_description(self, position_desc, ring_config=None, device=None, orientation=None, is_inner_ring=False, clockwise=False, outer_pads=None):
         """Convert position description to specific coordinates, considering device offset and inner ring pad offset"""
         if isinstance(position_desc, tuple):
             # If already a coordinate tuple, return directly
@@ -225,8 +223,8 @@ class SchematicGenerator:
                             y -= inner_offset  # Move down
                         
                         # Apply device offset
-                        if device_type:
-                            offset = self.get_device_offset(device_type)
+                        if device:
+                            offset = self.get_device_offset(device)
                             if side == 'left':
                                 y -= offset  # Vertical offset
                             elif side == 'right':
@@ -321,8 +319,8 @@ class SchematicGenerator:
                 y += inner_offset  # Move down
         
         # Apply device offset
-        if device_type:
-            offset = self.get_device_offset(device_type)
+        if device:
+            offset = self.get_device_offset(device)
             
             # Apply offset based on side direction
             if side == 'left':
@@ -412,9 +410,9 @@ class SchematicGenerator:
         
         return commands
     
-    def get_default_pin_config(self, device_type, pin_name, pad_name, io_type='input'):
+    def get_default_pin_config(self, device, pin_name, pad_name, direction='input'):
         """Get default pin configuration"""
-        return self.template_manager.get_pin_config(device_type, pin_name, pad_name, io_type)
+        return self.template_manager.get_pin_config(device, pin_name, pad_name, direction)
     
     def get_noconn_orientation(self, device_orientation):
         """Get corresponding orientation for noConn component"""
@@ -495,23 +493,23 @@ class SchematicGenerator:
             if inst.get('type') == 'corner':
                 continue
                 
-            device_type = inst['device_type']
-            template = self.template_manager.get_template(device_type)
+            device = inst['device']
+            template = self.template_manager.get_template(device)
             
             if not template:
-                print(f"⚠️  Warning: Template not found for device type {device_type}, skipping {inst['name']}")
+                print(f"⚠️  Warning: Template not found for device type {device}, skipping {inst['name']}")
                 continue
             
             # Load device library (if not loaded yet)
-            if device_type not in loaded_devices:
-                commands.append(f'{device_type.lower()}Master = dbOpenCellView("{template.device_lib}" "{template.device_cell}" "{template.device_view}")')
-                loaded_devices.add(device_type)
+            if device not in loaded_devices:
+                commands.append(f'{device.lower()}Master = dbOpenCellView("{template.device_lib}" "{template.device_cell}" "{template.device_view}")')
+                loaded_devices.add(device)
             
             # Calculate position coordinates
             position_desc = inst['position']
             is_inner_ring = inst.get('is_inner_ring', False)  # Get inner ring pad identifier
             x_pos, y_pos = self.calculate_position_from_description(
-                position_desc, ring_config, device_type, inst['orientation'], 
+                position_desc, ring_config, device, inst['orientation'], 
                 is_inner_ring, clockwise, outer_pads if is_inner_ring else None
             )
             orientation = inst['orientation']
@@ -535,7 +533,7 @@ class SchematicGenerator:
                 else:
                     # Normal format: left_0 -> left0
                     instance_name = f"{inst['name']}_{position_desc.replace('_', '')}"
-            commands.append(f'dbCreateInst(cv {device_type.lower()}Master "{instance_name}" \'({x_pos} {y_pos}) "{orientation}")')
+            commands.append(f'dbCreateInst(cv {device.lower()}Master "{instance_name}" \'({x_pos} {y_pos}) "{orientation}")')
             
             # Calculate rotated center point
             rotated_center_x, rotated_center_y = self.rotate_point(template.center_x, template.center_y, orientation)
@@ -544,11 +542,11 @@ class SchematicGenerator:
             
             # Generate pin connections
             # First collect main power/ground labels
-            pin_config_dict = inst.get('pin_config', {})
-            vdd_label = pin_config_dict.get('VDD', {}).get('label')
-            vss_label = pin_config_dict.get('VSS', {}).get('label')
-            vddpst_label = pin_config_dict.get('VDDPST', {}).get('label')
-            vsspst_label = pin_config_dict.get('VSSPST', {}).get('label')
+            pin_connection_dict = inst.get('pin_connection', {})
+            vdd_label = pin_connection_dict.get('VDD', {}).get('label')
+            vss_label = pin_connection_dict.get('VSS', {}).get('label')
+            vddpst_label = pin_connection_dict.get('VDDPST', {}).get('label')
+            vsspst_label = pin_connection_dict.get('VSSPST', {}).get('label')
 
             for pin in template.pins:
                 rotated_pin_x, rotated_pin_y = self.rotate_point(pin['x'], pin['y'], orientation)
@@ -557,11 +555,11 @@ class SchematicGenerator:
                 side = self.get_pin_side_from_center(final_pin_x, final_pin_y, final_center_x, final_center_y, orientation)
                 
                 # Get default configuration, pass main power/ground labels
-                io_type = inst.get('io_type', 'input')  # Default to input IO
-                pin_cfg = pin_config_dict.get(pin['name'], {})
+                direction = inst.get('direction', 'input')  # Default to input IO
+                pin_cfg = pin_connection_dict.get(pin['name'], {})
                 pin_label = pin_cfg.get('label')
                 default_config = self.template_manager.get_pin_config(
-                    device_type, pin['name'], inst['name'], io_type,
+                    device, pin['name'], inst['name'], direction,
                     pin_label=pin_label,
                     vdd_label=vdd_label,
                     vss_label=vss_label,
@@ -579,7 +577,7 @@ class SchematicGenerator:
                     continue
                 
                 # Check if it's a digital IO device and label is noConn
-                if (device_type in ['PDDW16SDGZ_H_G', 'PDDW16SDGZ_V_G'] and 
+                if (device in ['PDDW16SDGZ_H_G', 'PDDW16SDGZ_V_G'] and 
                     label == 'noConn'):
                     # Create noConn component
                     if not noConn_loaded:
@@ -628,11 +626,27 @@ class SchematicGenerator:
 
 def load_templates_from_json(json_file="device_templates.json"):
     """Load device templates from JSON file"""
-    # If file doesn't exist, try to find in src/schematic directory
-    if not os.path.exists(json_file):
-        src_schematic_path = os.path.join("src", "schematic", json_file)
-        if os.path.exists(src_schematic_path):
-            json_file = src_schematic_path
+    # Try multiple locations and filenames
+    possible_files = [
+        json_file,  # Original filename
+        os.path.join("src", "schematic", json_file),  # src/schematic directory
+        os.path.join("src", "scripts", "devices", json_file),  # src/scripts/devices directory
+        # Alternative filename
+        "IO_device_info_T28.json",
+        os.path.join("src", "schematic", "IO_device_info_T28.json"),
+        os.path.join("src", "scripts", "devices", "IO_device_info_T28.json"),
+    ]
+    
+    json_file = None
+    for file_path in possible_files:
+        if os.path.exists(file_path):
+            json_file = file_path
+            break
+    
+    if json_file is None:
+        raise FileNotFoundError(
+            f"Device template file not found. Tried: {', '.join(possible_files)}"
+        )
     
     template_manager = DeviceTemplateManager()
     template_manager.load_templates_from_json(json_file)
@@ -657,7 +671,7 @@ def generate_multi_device_schematic(config_list, output_file="multi_device_schem
     generator = SchematicGenerator(template_manager)
     
     # Check if it's old format (instances list)
-    if config_list and isinstance(config_list[0], dict) and 'device_type' in config_list[0]:
+    if config_list and isinstance(config_list[0], dict) and 'device' in config_list[0]:
         # Old format: directly pass instances list
         return generator.generate_schematic(config_list, output_file, clockwise)
     else:

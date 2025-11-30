@@ -52,7 +52,7 @@ TOOL_REGISTRY = {
     
     # IO Ring
     "generate_io_ring_schematic": ("src.tools.io_ring_generator_tool", "generate_io_ring_schematic"),
-    "validate_io_ring_config": ("src.tools.io_ring_generator_tool", "validate_io_ring_config"),
+    "validate_intent_graph": ("src.tools.io_ring_generator_tool", "validate_intent_graph"),
     "generate_io_ring_layout": ("src.tools.io_ring_generator_tool", "generate_io_ring_layout"),
     
     # User profile management (write-only, profile is pre-loaded in system prompt)
@@ -103,17 +103,91 @@ def load_tool_config(config_path: str = "config/tools_config.yaml") -> Dict[str,
 def get_default_config() -> Dict[str, Any]:
     """
     Get default tool configuration when config file is not available.
+    This should match the structure in tools_config.yaml.
     
     Returns:
         Default configuration dictionary
     """
-    return {
-        "core_tools": list(TOOL_REGISTRY.keys())[:6],  # First 6 are core
-        "tool_groups": {
-            "virtuoso": {"enabled": True, "tools": list(TOOL_REGISTRY.keys())[6:12]},
-            "verification": {"enabled": True, "tools": list(TOOL_REGISTRY.keys())[12:15]},
-            "io_ring": {"enabled": True, "tools": list(TOOL_REGISTRY.keys())[15:18]},
+    # Core tools: tool management + knowledge base + health check
+    core_tools = [
+        # Tool management (meta-tools)
+        "list_registered_tools",
+        "get_tool_info",
+        "check_tool_availability",
+        "export_tools_snapshot",
+        "get_tools_summary",
+        # Knowledge loading
+        "scan_knowledge_base",
+        "search_knowledge",
+        "load_domain_knowledge",
+        "refresh_knowledge_index",
+        "add_knowledge_directory",
+        "export_knowledge_index",
+        # System health check
+        "run_health_check",
+        "check_virtuoso_connection",
+        "quick_diagnostic",
+    ]
+    
+    # Tool groups: organized by functionality
+    tool_groups = {
+        "virtuoso": {
+            "enabled": True,
+            "tools": [
+                "run_il_file",
+                "list_il_files",
+                "run_il_with_screenshot",
+                "clear_all_figures_in_window",
+                "screenshot_current_window",
+            ]
         },
+        "skill_tools": {
+            "enabled": True,
+            "tools": [
+                "list_skill_tools",
+                "run_skill_tool",
+                "create_skill_tool",
+                "update_skill_tool",
+                "delete_skill_tool",
+            ]
+        },
+        "python_helpers": {
+            "enabled": True,
+            "tools": [
+                "create_python_helper",
+                "list_python_helpers",
+                "update_python_helper",
+                "delete_python_helper",
+                "view_python_helper_code",
+            ]
+        },
+        "verification": {
+            "enabled": True,
+            "tools": [
+                "run_drc",
+                "run_lvs",
+                "run_pex",
+            ]
+        },
+        "io_ring": {
+            "enabled": True,
+            "tools": [
+                "generate_io_ring_schematic",
+                "validate_intent_graph",
+                "generate_io_ring_layout",
+            ]
+        },
+        "user_profile": {
+            "enabled": True,
+            "tools": [
+                "update_user_profile",
+            ]
+        },
+    }
+    
+    return {
+        "core_tools": core_tools,
+        "tool_groups": tool_groups,
         "loading_strategy": {
             "mode": "eager",
             "auto_discover": False

@@ -129,7 +129,7 @@ def generate_report(lvs_results, output_file):
         return False, f"Error generating report: {str(e)}"
 
 @tool
-def run_lvs_va(lib: Optional[str] = None, cell: Optional[str] = None, view: str = "layout") -> str:
+def run_lvs_va(lib: Optional[str] = None, cell: Optional[str] = None, view: str = "layout", tech_node: str = "T28") -> str:
     """
     Run LVS check script and generate violation report.
     
@@ -140,17 +140,23 @@ def run_lvs_va(lib: Optional[str] = None, cell: Optional[str] = None, view: str 
         lib: Target library name (optional). If None, use current design's library.
         cell: Target cell name (optional). If None, use current design's cell.
         view: Target view name (default: "layout"). Used to choose the viewType mapping when opening the cellView.
+        tech_node: Technology node (default: "T28"). Must be "T28" or "T180". Do not mix different tech nodes.
+                   Note: T180 may not have LVS script.
 
     Returns:
         String description of the run result.
     """
     try:
-        # Get script path
-        script_path = Path("scripts/run_lvs.csh")
+        # Validate tech_node
+        if tech_node not in ["T28", "T180"]:
+            return f"❌ Error: Invalid tech_node '{tech_node}'. Must be 'T28' or 'T180'"
+        
+        # Get script path based on tech_node
+        script_path = Path(f"src/scripts/calibre/{tech_node}/run_lvs_{tech_node}.csh")
         
         # Check if script exists
         if not script_path.exists():
-            return f"❌ Error: LVS script file {script_path} does not exist"
+            return f"❌ Error: LVS script file not found: {script_path} (tech_node: {tech_node})"
         
         # Ensure script has execution permissions
         script_path.chmod(0o755)
@@ -216,7 +222,7 @@ def run_lvs_va(lib: Optional[str] = None, cell: Optional[str] = None, view: str 
         return f"❌ Error running LVS check: {e}" 
 
 @tool
-def run_lvs(cell: Optional[str] = None, lib: Optional[str] = None, view: str = "layout") -> str:
+def run_lvs(cell: Optional[str] = None, lib: Optional[str] = None, view: str = "layout", tech_node: str = "T28") -> str:
     """
     Run LVS check script and generate violation report.
     
@@ -227,17 +233,23 @@ def run_lvs(cell: Optional[str] = None, lib: Optional[str] = None, view: str = "
         cell: Layout cell name (optional). If None, use default.
         lib:  Library name (optional). If None, use default.
         view: Target view name (default: "layout"). Used to choose the viewType mapping when opening the cellView.
+        tech_node: Technology node (default: "T28"). Must be "T28" or "T180". Do not mix different tech nodes.
+                   Note: T180 may not have LVS script.
 
     Returns:
         String description of the run result.
     """
     try:
-        # Get script path
-        script_path = Path("scripts/run_lvs.csh")
+        # Validate tech_node
+        if tech_node not in ["T28", "T180"]:
+            return f"❌ Error: Invalid tech_node '{tech_node}'. Must be 'T28' or 'T180'"
+        
+        # Get script path based on tech_node
+        script_path = Path(f"src/scripts/calibre/{tech_node}/run_lvs_{tech_node}.csh")
         
         # Check if script exists
         if not script_path.exists():
-            return f"❌ Error: LVS script file {script_path} does not exist"
+            return f"❌ Error: LVS script file not found: {script_path} (tech_node: {tech_node})"
         
         # Ensure script has execution permissions
         script_path.chmod(0o755)

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Tool Statistics Tool - Agent 可用的工具统计工具
+Tool Statistics Tool - Tool statistics utility available to Agent
 """
 
 from smolagents import tool
-from ..utils.tool_usage_tracker import get_tracker
+from src.app.utils.tool_usage_tracker import get_tracker
 
 
 @tool
@@ -26,7 +26,7 @@ def get_tool_statistics(tool_name: str = None) -> str:
     tracker = get_tracker()
     
     if tool_name:
-        # 获取特定工具的统计
+        # Get statistics for specific tool
         stats = tracker.get_tool_stats(tool_name)
         
         if "error" in stats:
@@ -47,7 +47,7 @@ def get_tool_statistics(tool_name: str = None) -> str:
         
         return "\n".join(result)
     else:
-        # 获取所有工具的统计
+        # Get statistics for all tools
         all_stats = tracker.get_all_stats()
         
         if not all_stats:
@@ -56,12 +56,12 @@ def get_tool_statistics(tool_name: str = None) -> str:
         result = [f"📊 Tool Usage Statistics ({len(all_stats)} tools):"]
         result.append("")
         
-        # 按调用次数排序
+        # Sort by call count
         sorted_tools = sorted(all_stats.items(), 
                              key=lambda x: x[1]['total_calls'], 
                              reverse=True)
         
-        for tool_name, stats in sorted_tools[:10]:  # 只显示前 10 个
+        for tool_name, stats in sorted_tools[:10]:  # Show only top 10
             result.append(f"• {tool_name}:")
             result.append(f"  Calls: {stats['total_calls']}, "
                          f"Success: {stats['success_rate']}, "
@@ -149,7 +149,7 @@ def generate_tool_usage_report() -> str:
     tracker = get_tracker()
     report = tracker.generate_report()
     
-    # 保存报告到文件
+    # Save report to file
     try:
         from pathlib import Path
         report_file = Path("output/logs/tool_usage_report.txt")
@@ -173,7 +173,7 @@ def reset_tool_statistics() -> str:
     """
     tracker = get_tracker()
     
-    # 清空统计
+    # Clear statistics
     tracker.session_stats.clear()
     tracker.save_stats()
     

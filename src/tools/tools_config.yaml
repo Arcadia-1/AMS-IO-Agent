@@ -63,7 +63,7 @@ tool_groups:
     enabled: true
     tools:
       - generate_io_ring_schematic
-      - validate_io_ring_config
+      - validate_intent_graph
       - generate_io_ring_layout
   
   user_profile:

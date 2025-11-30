@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-JSON Configuration Validator - Validates IO ring configuration files
+Intent Graph Validator - Validates intent graph files
 """
 
 import re
@@ -63,8 +63,8 @@ def validate_config(config: Dict[str, Any]) -> bool:
             print(f"❌ Error: instance[{i}] missing name field")
             return False
         
-        if 'device_type' not in instance:
-            print(f"❌ Error: instance[{i}] missing device_type field")
+        if 'device' not in instance:
+            print(f"❌ Error: instance[{i}] missing device field")
             return False
         
         if 'position' not in instance:
@@ -72,12 +72,12 @@ def validate_config(config: Dict[str, Any]) -> bool:
             return False
         
         name = instance['name']
-        device_type = instance['device_type']
+        device = instance['device']
         position = instance['position']
         
-        # Validate device_type suffix rules
-        if not validate_device_type_suffix(device_type, position):
-            print(f"❌ Error: instance[{i}] {name}'s device_type suffix doesn't match position")
+        # Validate device suffix rules
+        if not validate_device_suffix(device, position):
+            print(f"❌ Error: instance[{i}] {name}'s device suffix doesn't match position")
             return False
         
         # Validate position format
@@ -110,34 +110,34 @@ def validate_config(config: Dict[str, Any]) -> bool:
                     print(f"❌ Error: instance[{i}] {name}'s corner type position format is incorrect")
                     return False
         
-        # Validate io_type field (required for digital IO)
-        if device_type.startswith('PDDW16SDGZ'):
-            if 'io_type' not in instance:
-                print(f"❌ Error: instance[{i}] {name}'s digital IO missing io_type field")
+        # Validate direction field (required for digital IO)
+        if device.startswith('PDDW16SDGZ'):
+            if 'direction' not in instance:
+                print(f"❌ Error: instance[{i}] {name}'s digital IO missing direction field")
                 return False
-            io_type = instance['io_type']
-            if io_type not in ['input', 'output']:
-                print(f"❌ Error: instance[{i}] {name}'s io_type must be 'input' or 'output'")
+            direction = instance['direction']
+            if direction not in ['input', 'output']:
+                print(f"❌ Error: instance[{i}] {name}'s direction must be 'input' or 'output'")
                 return False
         
-        # Validate pin_config (if exists)
-        if 'pin_config' in instance:
-            pin_config = instance['pin_config']
-            if not isinstance(pin_config, dict):
-                print(f"❌ Error: instance[{i}] {name}'s pin_config must be a dictionary")
+        # Validate pin_connection (if exists)
+        if 'pin_connection' in instance:
+            pin_connection = instance['pin_connection']
+            if not isinstance(pin_connection, dict):
+                print(f"❌ Error: instance[{i}] {name}'s pin_connection must be a dictionary")
                 return False
             
-            # Validate digital IO pin_config
-            if device_type.startswith('PDDW16SDGZ'):
+            # Validate digital IO pin_connection
+            if device.startswith('PDDW16SDGZ'):
                 required_pins = ['VDD', 'VSS', 'VDDPST', 'VSSPST']
                 for pin in required_pins:
-                    if pin not in pin_config:
+                    if pin not in pin_connection:
                         print(f"❌ Error: instance[{i}] {name}'s digital IO missing {pin} pin configuration")
                         return False
             
             # Validate analog device VSS pin
-            if device_type.startswith(('PDB3AC', 'PVDD', 'PVSS')):
-                if 'VSS' not in pin_config:
+            if device.startswith(('PDB3AC', 'PVDD', 'PVSS')):
+                if 'VSS' not in pin_connection:
                     print(f"❌ Error: instance[{i}] {name}'s analog device missing VSS pin configuration")
                     return False
     
@@ -183,31 +183,31 @@ def validate_config(config: Dict[str, Any]) -> bool:
     # Count device types
     device_types = {}
     for instance in instances:
-        device_type = instance.get('device_type', 'unknown')
-        device_types[device_type] = device_types.get(device_type, 0) + 1
+        device = instance.get('device', 'unknown')
+        device_types[device] = device_types.get(device, 0) + 1
     
     print(f"  - Device type statistics:")
-    for device_type, count in sorted(device_types.items()):
-        print(f"    * {device_type}: {count}")
+    for device, count in sorted(device_types.items()):
+        print(f"    * {device}: {count}")
     
     print("✅ Configuration validation passed")
     return True
 
-def validate_device_type_suffix(device_type: str, position: str) -> bool:
-    """Validate device_type suffix compatibility with position"""
+def validate_device_suffix(device: str, position: str) -> bool:
+    """Validate device suffix compatibility with position"""
     # Corner validation: only need to judge if position is a legal corner position
     if position.startswith(('top_left', 'top_right', 'bottom_left', 'bottom_right')):
-        # Corner doesn't need to judge device_type suffix, only need position to be legal
+        # Corner doesn't need to judge device suffix, only need position to be legal
         return True
     
     # Left and right side pads must use _H_G suffix
     if position.startswith(('left_', 'right_')):
-        if not device_type.endswith('_H_G'):
+        if not device.endswith('_H_G'):
             return False
     
     # Top and bottom side pads must use _V_G suffix
     elif position.startswith(('top_', 'bottom_')):
-        if not device_type.endswith('_V_G'):
+        if not device.endswith('_V_G'):
             return False
     
     return True
@@ -246,7 +246,7 @@ def validate_position_format(position: str, width: int, height: int) -> bool:
     return False
 
 def convert_config_to_list(config: Dict[str, Any]) -> list:
-    """Convert JSON configuration to list format required by generator"""
+    """Convert intent graph to list format required by generator"""
     config_list = []
     
     # Add ring_config
@@ -274,13 +274,13 @@ def get_config_statistics(config: Dict[str, Any]) -> Dict[str, Any]:
     # Count different types of devices
     device_types = {}
     for instance in instances:
-        device_type = instance.get('device_type', 'unknown')
-        device_types[device_type] = device_types.get(device_type, 0) + 1
+        device = instance.get('device', 'unknown')
+        device_types[device] = device_types.get(device, 0) + 1
     
     # Count digital IO inputs/outputs
-    digital_ios = [inst for inst in instances if inst.get('device_type') == 'PDDW16SDGZ']
-    input_ios = [io for io in digital_ios if io.get('io_type') == 'input']
-    output_ios = [io for io in digital_ios if io.get('io_type') == 'output']
+    digital_ios = [inst for inst in instances if inst.get('device') == 'PDDW16SDGZ']
+    input_ios = [io for io in digital_ios if io.get('direction') == 'input']
+    output_ios = [io for io in digital_ios if io.get('direction') == 'output']
     
     return {
         'ring_size': f"{ring_config.get('width', 'N/A')} x {ring_config.get('height', 'N/A')}",

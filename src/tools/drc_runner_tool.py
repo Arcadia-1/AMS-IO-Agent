@@ -53,7 +53,7 @@ def generate_report(violations, output_file):
         return False, f"Error generating report: {str(e)}"
 
 @tool
-def run_drc_va(lib: Optional[str] = None, cell: Optional[str] = None, view: str = "layout") -> str:
+def run_drc_va(lib: Optional[str] = None, cell: Optional[str] = None, view: str = "layout", tech_node: str = "T28") -> str:
     """
     Run DRC check script and generate violation report.
     
@@ -64,17 +64,22 @@ def run_drc_va(lib: Optional[str] = None, cell: Optional[str] = None, view: str 
         lib: Target library name (optional). If None, use current design's library.
         cell: Target cell name (optional). If None, use current design's cell.
         view: Target view name (default: "layout"). Used to choose the viewType mapping when opening the cellView.
+        tech_node: Technology node (default: "T28"). Must be "T28" or "T180". Do not mix different tech nodes.
 
     Returns:
         String description of the run result.
     """
     try:
-        # Get script path
-        script_path = Path("scripts/run_drc.csh")
+        # Validate tech_node
+        if tech_node not in ["T28", "T180"]:
+            return f"❌ Error: Invalid tech_node '{tech_node}'. Must be 'T28' or 'T180'"
+        
+        # Get script path based on tech_node
+        script_path = Path(f"src/scripts/calibre/{tech_node}/run_drc_{tech_node}.csh")
         
         # Check if script exists
         if not script_path.exists():
-            return f"❌ Error: DRC script file {script_path} does not exist"
+            return f"❌ Error: DRC script file not found: {script_path} (tech_node: {tech_node})"
         
         # Ensure script has execution permissions
         script_path.chmod(0o755)
@@ -140,7 +145,7 @@ def run_drc_va(lib: Optional[str] = None, cell: Optional[str] = None, view: str 
         return f"❌ Error running DRC check: {e}" 
 
 @tool
-def run_drc(cell: Optional[str] = None, lib: Optional[str] = None, view: str = "layout") -> str:
+def run_drc(cell: Optional[str] = None, lib: Optional[str] = None, view: str = "layout", tech_node: str = "T28") -> str:
     """
     Run DRC check script and generate a report.
     - If cell/lib are not provided, automatically get them from the current open design (same behavior as run_drc_va).
@@ -150,17 +155,22 @@ def run_drc(cell: Optional[str] = None, lib: Optional[str] = None, view: str = "
         cell: Layout cell name (optional). If None, will be obtained from the current design.
         lib:  Library name (optional). If None, will be obtained from the current design.
         view: Target view name (default: "layout"). Used to choose the viewType mapping when opening the cellView.
+        tech_node: Technology node (default: "T28"). Must be "T28" or "T180". Do not mix different tech nodes.
 
     Returns:
         A string description of the run result.
     """
     try:
-        # Get script path
-        script_path = Path("scripts/run_drc.csh")
-
+        # Validate tech_node
+        if tech_node not in ["T28", "T180"]:
+            return f"❌ Error: Invalid tech_node '{tech_node}'. Must be 'T28' or 'T180'"
+        
+        # Get script path based on tech_node
+        script_path = Path(f"src/scripts/calibre/{tech_node}/run_drc_{tech_node}.csh")
+        
         # Check if script exists
         if not script_path.exists():
-            return f"❌ Error: DRC script file {script_path} does not exist"
+            return f"❌ Error: DRC script file not found: {script_path} (tech_node: {tech_node})"
 
         # Ensure script is executable
         script_path.chmod(0o755)

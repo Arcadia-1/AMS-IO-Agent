@@ -3,6 +3,13 @@ from pathlib import Path
 from smolagents import OpenAIServerModel
 from smolagents.gradio_ui import GradioUI
 
+# Import default tools from smolagents
+try:
+    from smolagents.default_tools import UserInputTool
+except ImportError:
+    # Fallback if default_tools is not available
+    UserInputTool = None
+
 from src.tools.il_runner_tool import (
     run_il_file, 
     list_il_files,
@@ -14,7 +21,7 @@ from src.tools.drc_runner_tool import run_drc
 from src.tools.lvs_runner_tool import run_lvs
 from src.tools.pex_runner_tool import run_pex
 # from src.tools.example_search_tool import code_example_search
-from src.tools.io_ring_generator_tool import generate_io_ring_schematic, validate_io_ring_config, generate_io_ring_layout
+from src.tools.io_ring_generator_tool import generate_io_ring_schematic, validate_intent_graph, generate_io_ring_layout
 from src.tools.knowledge_loader_tool import (
     scan_knowledge_base, 
     load_domain_knowledge, 
@@ -113,7 +120,7 @@ def create_agent(model, final_instructions, show_code_execution: bool = False):
             
             # IO Ring generation tools
             generate_io_ring_schematic,
-            validate_io_ring_config,
+            validate_intent_graph,
             generate_io_ring_layout,
             
             # User profile management
@@ -123,7 +130,7 @@ def create_agent(model, final_instructions, show_code_execution: bool = False):
             get_user_preference,
             list_user_profiles,
             clear_user_profile_section,
-        ],
+        ] + ([UserInputTool()] if UserInputTool is not None else []),
         model=model,
         instructions=final_instructions,
         stream_outputs=True,  # Keep streaming for Thought and Observation

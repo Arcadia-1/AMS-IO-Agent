@@ -73,7 +73,7 @@ ramic_bridge:
 # -----------------------------------------------------------------------------
 tools:
   # Path to tools configuration file
-  config_path: "config/tools_config.yaml"
+  config_path: "src/tools/tools_config.yaml"
 
 system:
   # Agent architecture: "master_with_workers" enables multi-agent system

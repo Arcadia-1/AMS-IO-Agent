@@ -93,10 +93,20 @@ def should_skip_file(file_path: Path) -> bool:
     return False
 
 def auto_discover_knowledge():
-    """Automatically discover all markdown files in knowledge directories (including subdirectories)"""
-    knowledge_index = {}
+    """Automatically discover all markdown files in knowledge directories (including subdirectories)
     
-    for category, directory in KNOWLEDGE_DIRECTORIES.items():
+    Avoids duplicate scanning: if a file is in a subdirectory that's also listed as a separate category,
+    it will only be scanned once (using the more specific category).
+    """
+    knowledge_index = {}
+    scanned_files = set()  # Track files that have already been scanned to avoid duplicates
+    
+    # Sort categories by path depth (deeper paths first) to prioritize more specific categories
+    sorted_categories = sorted(KNOWLEDGE_DIRECTORIES.items(), 
+                              key=lambda x: len(Path(x[1]).parts), 
+                              reverse=True)
+    
+    for category, directory in sorted_categories:
         dir_path = PROJECT_ROOT / directory
         if not dir_path.exists():
             continue
@@ -106,6 +116,14 @@ def auto_discover_knowledge():
             # Skip documentation files (for humans, not AI)
             if should_skip_file(md_file):
                 continue
+            
+            # Skip if this file has already been scanned by a more specific category
+            file_path_str = str(md_file.relative_to(PROJECT_ROOT))
+            if file_path_str in scanned_files:
+                continue
+            
+            # Mark this file as scanned
+            scanned_files.add(file_path_str)
             
             # Calculate relative path from the category directory
             rel_path = md_file.relative_to(dir_path)
@@ -133,7 +151,7 @@ def auto_discover_knowledge():
                 description = f"Knowledge from {md_file.name}"
             
             knowledge_index[key] = {
-                "path": str(md_file.relative_to(PROJECT_ROOT)),
+                "path": file_path_str,
                 "category": category,
                 "description": description,
                 "size": md_file.stat().st_size,

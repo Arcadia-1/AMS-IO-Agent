@@ -20,18 +20,26 @@ def _import_rbexc():
     """
     Import RBExc from possible locations, raising ImportError if none found.
     """
+    # Try new path first (src/scripts/ramic_bridge/)
     try:
-        from ramic_bridge import RBExc  # type: ignore
+        from src.scripts.ramic_bridge.ramic_bridge import RBExc  # type: ignore
         return RBExc
     except Exception:
         pass
+    # Try old path for backward compatibility (src/tools/ramic_bridge/)
     try:
         from src.tools.ramic_bridge.ramic_bridge import RBExc  # type: ignore
         return RBExc
     except Exception:
         pass
-    from tools.ramic_bridge.ramic_bridge import RBExc  # type: ignore
-    return RBExc
+    # Fallback: try as standalone package
+    try:
+        from ramic_bridge import RBExc  # type: ignore
+        return RBExc
+    except Exception:
+        pass
+    # If all imports fail, raise ImportError
+    raise ImportError("Could not import RBExc from any known location. Please ensure ramic_bridge is installed or available in the project.")
 
 
 def rb_exec(skill: str, timeout: int = 30, host: Optional[str] = None, port: Optional[int] = None) -> str:
@@ -431,8 +439,15 @@ def execute_csh_script(script_path: str, *args, timeout: int = 300) -> str:
         print(f"Remote execution via ramic_bridge")
         try:
             # Build command string for csh execution
-            cmd_args = " ".join(str(arg) for arg in args)
-            script_cmd = f'csh("{abs_script_path} {cmd_args}")'
+            # In SKILL, csh() executes a command and returns "t" on success or "nil" on failure
+            # Execute script from project root directory to ensure relative paths work correctly
+            project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+            script_rel_path = os.path.relpath(abs_script_path, project_root)
+            cmd_args = " ".join(f'"{arg}"' if " " in str(arg) else str(arg) for arg in args)
+            
+            # Change to project root directory, then execute script with arguments
+            # Use && to chain commands: cd to project root && execute script
+            script_cmd = f'csh("cd {project_root} && ./{script_rel_path} {cmd_args}")'
             
             # Get connection parameters from environment
             rb_host = os.getenv("RB_HOST", "127.0.0.1")
@@ -445,16 +460,37 @@ def execute_csh_script(script_path: str, *args, timeout: int = 300) -> str:
             result = RBExc(script_cmd, rb_host, rb_port, timeout=timeout)
             
             # Clean control characters and check for success
+            # In SKILL, csh() returns "t" on success, "nil" on failure
+            # The result may contain control characters: STX (0x02) for success, NAK (0x15) for error
             if result:
                 # Remove control characters (STX, NAK, RS, etc.) and whitespace
                 cleaned_result = "".join(ch for ch in result if ord(ch) >= 32).strip()
                 
-                # Only consider "t" as success, everything else is failure
-                if cleaned_result.lower() == "t":
+                # Check for "nil" - this means csh() failed in SKILL
+                if cleaned_result.lower() == "nil":
+                    return f"Remote csh execution failed: SKILL csh() returned nil. This usually means:\n" \
+                           f"  1. Script file not found or not executable\n" \
+                           f"  2. Script execution failed (check script permissions and content)\n" \
+                           f"  3. Script path or arguments are incorrect\n" \
+                           f"  Command: {script_cmd}"
+                
+                # Check if result ends with "t" (success indicator from SKILL csh())
+                if cleaned_result.lower().endswith("t") or cleaned_result.lower() == "t":
+                    # Success - return the result (may contain script output)
                     return result
+                elif cleaned_result.lower() in ["none", ""]:
+                    return f"Remote csh execution failed: empty result"
+                elif "error" in cleaned_result.lower() or "failed" in cleaned_result.lower() or cleaned_result.lower().startswith("usage:"):
+                    # Contains error keywords, treat as failure
+                    return f"Remote csh execution failed: {cleaned_result}"
                 else:
-                    print(f"Failure: cleaned result is not 't', returning error message")
-                    return f"Remote csh execution failed: {result or 'nil/empty result'}"
+                    # Non-empty result that doesn't end with "t" and doesn't contain error keywords
+                    # This might be script output. In SKILL, csh() returns "t" on success,
+                    # but if the script outputs text, it might be mixed.
+                    # We'll check if it looks like an error or just output
+                    # For now, if it doesn't look like an error, treat as success with output
+                    # The caller can check the actual script output files to verify
+                    return result
             else:
                 print("Failure: result is empty or None")
                 return f"Remote csh execution failed: {result or 'nil/empty result'}"

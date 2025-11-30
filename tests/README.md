@@ -283,7 +283,7 @@ export WANDOU_API_KEY="your_api_key"
 
 ### Test Data
 Test files use sample configurations and data located in:
-- `output/example/io_ring_config.json` - Sample IO ring configuration
+- `output/example/intent_graph.json` - Sample intent graph
 - `output/` - Test data files in output directory
 
 ## Test Output

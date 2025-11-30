@@ -43,7 +43,7 @@ def parse_pex_capacitance(netlist_file: Path) -> str:
         return f"Failed to extract PEX netlist content: {e}"
 
 @tool
-def run_pex(lib: Optional[str] = None, cell: Optional[str] = None, view: str = "layout") -> str:
+def run_pex(lib: Optional[str] = None, cell: Optional[str] = None, view: str = "layout", tech_node: str = "T28") -> str:
     """
     Run PEX extraction script and generate report.
     
@@ -54,14 +54,22 @@ def run_pex(lib: Optional[str] = None, cell: Optional[str] = None, view: str = "
         lib: Target library name (optional). If None, use current design's library.
         cell: Target cell name (optional). If None, use current design's cell.
         view: Target view name (default: "layout"). Used to choose the viewType mapping when opening the cellView.
+        tech_node: Technology node (default: "T28"). Must be "T28" or "T180". Do not mix different tech nodes.
 
     Returns:
         String description of the run result.
     """
     try:
-        script_path = Path("scripts/run_pex.csh")
+        # Validate tech_node
+        if tech_node not in ["T28", "T180"]:
+            return f"❌ Error: Invalid tech_node '{tech_node}'. Must be 'T28' or 'T180'"
+        
+        # Get script path based on tech_node
+        script_path = Path(f"src/scripts/calibre/{tech_node}/run_pex_{tech_node}.csh")
+        
+        # Check if script exists
         if not script_path.exists():
-            return f"❌ Error: PEX script file {script_path} does not exist"
+            return f"❌ Error: PEX script file not found: {script_path} (tech_node: {tech_node})"
         script_path.chmod(0o755)
         # If lib/cell provided, open the specified cell first
         if lib and cell:

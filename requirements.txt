@@ -14,4 +14,8 @@ skillbridge
 # Optional: Web Interface Support
 smolagents[gradio]
 
+# Data Processing
 openpyxl
+
+# Visualization
+matplotlib

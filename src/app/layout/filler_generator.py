@@ -69,7 +69,7 @@ class FillerGenerator:
     @staticmethod
     def create_corner_component(corner_type: str, name: str = "corner", voltage_domain: dict = None) -> dict:
         """Create corner component configuration, ensuring it contains name and appropriate voltage_domain field"""
-        d = {"name": name, "device_type": corner_type}
+        d = {"name": name, "device": corner_type}
         if voltage_domain:
             d["voltage_domain"] = voltage_domain
         elif corner_type == "PCORNERA_G":

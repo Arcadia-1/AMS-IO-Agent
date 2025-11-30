@@ -19,7 +19,7 @@ from src.tools.python_tool_creator import (
 )
 
 def test_create_read_il_helper():
-    """测试创建读取 IL 文件的 helper"""
+    """Test creating helper to read IL files"""
     print("\n" + "="*80)
     print("Test 1: Create 'read_il_file_content' helper")
     print("="*80)
@@ -40,7 +40,7 @@ return content
 
 
 def test_create_parse_il_comments():
-    """测试创建解析 IL 注释的 helper"""
+    """Test creating helper to parse IL comments"""
     print("\n" + "="*80)
     print("Test 2: Create 'parse_il_comments' helper")
     print("="*80)
@@ -65,7 +65,7 @@ return '\\n'.join(comment.strip() for comment in comments)
 
 
 def test_list_helpers():
-    """测试列出所有 helpers"""
+    """Test listing all helpers"""
     print("\n" + "="*80)
     print("Test 3: List all Python helpers")
     print("="*80)
@@ -75,7 +75,7 @@ def test_list_helpers():
 
 
 def test_view_helper_code():
-    """测试查看 helper 代码"""
+    """Test viewing helper code"""
     print("\n" + "="*80)
     print("Test 4: View 'read_il_file_content' code")
     print("="*80)
@@ -85,7 +85,7 @@ def test_view_helper_code():
 
 
 def test_cleanup():
-    """清理测试创建的 helpers"""
+    """Clean up test-created helpers"""
     print("\n" + "="*80)
     print("Cleanup: Delete test helpers")
     print("="*80)
@@ -99,17 +99,17 @@ if __name__ == "__main__":
     print("\n🧪 Testing Python Helper Tool Creation System\n")
     
     try:
-        # 创建测试 helpers
+        # Create test helpers
         test_create_read_il_helper()
         test_create_parse_il_comments()
         
-        # 列出所有 helpers
+        # List all helpers
         test_list_helpers()
         
-        # 查看代码
+        # View code
         test_view_helper_code()
         
-        # 清理
+        # Cleanup
         test_cleanup()
         
         print("\n" + "="*80)

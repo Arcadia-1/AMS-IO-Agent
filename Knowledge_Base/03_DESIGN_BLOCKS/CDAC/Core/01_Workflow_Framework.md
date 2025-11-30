@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document defines the **generic three-phase workflow framework** that applies to all capacitor design automation. The framework is shape-agnostic and technology-agnostic; specific implementations reference technology configurations and shape-specific structure definitions.
+This document defines the generic three-phase workflow framework that applies to all capacitor design automation. The framework is shape-agnostic and technology-agnostic; specific implementations reference technology configurations and shape-specific structure definitions.
 
 ---
 
@@ -16,32 +16,32 @@ The complete capacitor design workflow consists of three sequential phases:
 
 ---
 
-## Critical Requirements (Apply to All Phases)
+## Requirements (Apply to All Phases)
 
 ### Knowledge Loading Policy
 
-**MANDATORY execution order when starting a new phase (STRICT - EACH STEP MUST BE IN A SEPARATE CODE EXECUTION BLOCK):**
+Execution order when starting a new phase (each step must be in a separate code execution block):
 
-1. **Step 1 (LOAD ONLY)**: Load phase-specific knowledge modules
-   - Print the FULL content of loaded modules
-   - **STOP HERE** - Do NOT execute tasks, do NOT generate code
+1. **Step 1 (Load only)**: Load phase-specific knowledge modules
+   - Print the full content of loaded modules
+   - Stop here - do not execute tasks, do not generate code
 
-2. **Step 2 (UNDERSTAND ONLY)**: Review and understand the loaded knowledge
-   - **STOP HERE** - Do NOT execute tasks, do NOT generate code
+2. **Step 2 (Understand only)**: Review and understand the loaded knowledge
+   - Stop here - do not execute tasks, do not generate code
 
-3. **Step 3 (EXECUTE)**: Execute the phase tasks using the loaded and understood knowledge
+3. **Step 3 (Execute)**: Execute the phase tasks using the loaded and understood knowledge
    - Generate code, create files, or perform actions based on the loaded knowledge
    - Reference the loaded knowledge modules when making decisions
 
 **Loading rules:**
 - Load Phase 1 modules when starting Phase 1
-- Load Phase 2 modules ONLY when starting Phase 2
-- Load Phase 3 modules ONLY when starting Phase 3
-- Do NOT load future phase modules early
+- Load Phase 2 modules only when starting Phase 2
+- Load Phase 3 modules only when starting Phase 3
+- Do not load future phase modules early
 
 ### Report Handling Policy
 
-**MANDATORY for all DRC/PEX operations:**
+For all DRC/PEX operations:
 - After calling `run_drc()` or `run_pex()`, print the complete returned report content in full
 - Print the entire report text verbatim
 - AI interprets reports directly from the complete printed content
@@ -50,12 +50,12 @@ The complete capacitor design workflow consists of three sequential phases:
 
 - Execute all rounds/phases automatically in sequence without pausing
 - Only stop for truly blocking information (technology node, target capacitance if completely missing)
-- Do NOT call `final_answer()` during phase transitions
+- Do not call `final_answer()` during phase transitions
 - Only call `final_answer()` at the very end of the complete workflow (after Phase 3)
 
 ### Library/Cell Naming Policy
 
-**Automatic inference (DO NOT ask unless truly blocking):**
+**Automatic inference (do not ask unless truly blocking):**
 - **Library name**: Extract from user input or use default (e.g., "LLM_Layout_Design")
 - **Cell names**: Auto-generate based on capacitance and phase:
   - Phase 1: `C_MAIN_{capacitance}` (e.g., `C_MAIN_6fF`)
@@ -69,11 +69,11 @@ The complete capacitor design workflow consists of three sequential phases:
 
 ### View Naming Convention
 
-- **Iteration views**: Save each round to `layout1`, `layout2`, `layout3`, `layout4`, `layout5` of the SAME cell
-- **Final view (MANDATORY)**: After selecting best round, MUST generate SKILL script and execute it to create canonical `layout` view
-  - **CRITICAL**: This is NOT optional - Phase 2 and Phase 3 will fail if `layout` view doesn't exist
-  - **MANDATORY steps**: Generate SKILL script with best parameters → Execute SKILL to `layout` view → Verify `layout` view exists
-  - **DO NOT skip this step** - downstream phases depend on the `layout` view being available and correct
+- **Iteration views**: Save each round to `layout1`, `layout2`, `layout3`, `layout4`, `layout5` of the same cell
+- **Final view (required)**: After selecting best round, generate SKILL script and execute it to create canonical `layout` view
+  - This is not optional - Phase 2 and Phase 3 will fail if `layout` view doesn't exist
+  - Steps: Generate SKILL script with best parameters → Execute SKILL to `layout` view → Verify `layout` view exists
+  - Do not skip this step - downstream phases depend on the `layout` view being available and correct
 - **Downstream use**: Phase 2 and Phase 3 consume the best result from `layout` view
 - **View type**: Any view name starting with "layout" is treated as `maskLayout`
 
@@ -102,8 +102,8 @@ The complete capacitor design workflow consists of three sequential phases:
 - Use Python `compute_geometry()` function to compute all geometry from parameters
 - Use Python `render_skill()` function to generate flattened SKILL script
 - **Round 1**: Define `compute_geometry()` and `render_skill()` functions
-- **Rounds 2-5**: REUSE the same functions (do NOT redefine)
-- Generate COMPLETE SKILL script with ALL geometry and ALL via arrays in every round
+- **Rounds 2-5**: Reuse the same functions (do not redefine)
+- Generate complete SKILL script with all geometry and all via arrays in every round
 - SKILL must contain only flat, literal creation statements (no loops/conditionals)
 - Use whitelisted commands: `dbCreatePath`, `dbCreateRect`, `dbCreateVia`, `dbCreateLabel`, `techGetTechFile`, `techFindViaDefByName`, `dbSave`, `dbClose`
 
@@ -127,22 +127,22 @@ The complete capacitor design workflow consists of three sequential phases:
 - If error > 1% and iterations < 5: Update parameters and go back to Step 2
 - If error ≤ 1% OR iterations = 5: Proceed to finalization
 
-### Step 7: Finalization (MANDATORY before Phase 2)
+### Step 7: Finalization (required before Phase 2)
 
-**⚠️ CRITICAL: This step is MANDATORY - Phase 2 and Phase 3 will fail if skipped**
+This step is required - Phase 2 and Phase 3 will fail if skipped.
 
 - Select best round (lowest error or best result)
-- **MANDATORY**: Generate SKILL script using the best round's parameters
+- Generate SKILL script using the best round's parameters
   - Use the best round's parameters from `geometry_round*.json` file
-  - Generate complete SKILL script with ALL geometry and ALL via arrays
+  - Generate complete SKILL script with all geometry and all via arrays
   - Use the same `compute_geometry()` and `render_skill()` functions (reuse from previous rounds)
-- **MANDATORY**: Execute SKILL script to generate the final layout in canonical `layout` view
+- Execute SKILL script to generate the final layout in canonical `layout` view
   - Call `run_il_with_screenshot` with destination view set to `layout` (not layout1, layout2, etc.)
   - This creates/overwrites the `layout` view with the best round's geometry
-  - **CRITICAL**: Phase 2 and Phase 3 depend on this `layout` view - if it doesn't exist or is incorrect, Phase 3 will fail
-- Record final result and proceed directly to Phase 2 (do NOT call `final_answer()`)
+  - Phase 2 and Phase 3 depend on this `layout` view - if it doesn't exist or is incorrect, Phase 3 will fail
+- Record final result and proceed directly to Phase 2 (do not call `final_answer()`)
 
-**Why this is critical**: Phase 2 (Dummy generation) and Phase 3 (Array generation) read the unit capacitor from the `layout` view. If the `layout` view doesn't exist or contains incorrect geometry, downstream phases will fail with errors.
+**Why this is important**: Phase 2 (Dummy generation) and Phase 3 (Array generation) read the unit capacitor from the `layout` view. If the `layout` view doesn't exist or contains incorrect geometry, downstream phases will fail with errors.
 
 ### Parameter Optimization Strategy
 
@@ -179,9 +179,9 @@ The complete capacitor design workflow consists of three sequential phases:
 5. Width parameters (use only for DRC compliance or actual plate area increase)
 
 **Important notes:**
-- Via row count is **NOT** a capacitance optimization parameter
+- Via row count is not a capacitance optimization parameter
   - One row of vias is generally sufficient for connectivity
-  - Do NOT use two rows unless user explicitly requires it
+  - Do not use two rows unless user explicitly requires it
 - Width changes have smaller impact - use count/replication parameters and layers first
 - Consult shape module for specific parameter names and technology module for constraints
 
@@ -195,7 +195,7 @@ The complete capacitor design workflow consists of three sequential phases:
 
 ## Phase 2: Dummy Capacitor Generation
 
-**⚠️ PREREQUISITE**: Phase 1 must be completed with final `layout` view generated. Phase 2 will fail if `layout` view doesn't exist.
+**Prerequisite**: Phase 1 must be completed with final `layout` view generated. Phase 2 will fail if `layout` view doesn't exist.
 
 ### Step 1: Load Phase 2 knowledge modules
 - Load dummy generation module for the selected shape structure
@@ -205,7 +205,7 @@ The complete capacitor design workflow consists of three sequential phases:
 - Library: Reuse from Phase 1
 - Cell name: Auto-generate based on unit capacitor (e.g., `C_MAIN_6fF` → `C_DUMMY_6fF`)
 - Base on: Best unit capacitor from `layout` view (Phase 1 final result)
-  - **CRITICAL**: The `layout` view must exist and contain the final unit capacitor geometry
+  - The `layout` view must exist and contain the final unit capacitor geometry
   - If `layout` view doesn't exist, Phase 1 finalization (Step 7) was not completed correctly
 - Inherit shield rendering decision from unit capacitor
 - Apply dummy-specific geometric transformations per shape module
@@ -222,7 +222,7 @@ The complete capacitor design workflow consists of three sequential phases:
 
 ## Phase 3: Capacitor Array Generation
 
-**⚠️ PREREQUISITE**: Phase 1 must be completed with final `layout` view generated. Phase 3 will fail if `layout` view doesn't exist.
+**Prerequisite**: Phase 1 must be completed with final `layout` view generated. Phase 3 will fail if `layout` view doesn't exist.
 
 ### Step 1: Load Phase 3 knowledge modules
 - Load array generation module (`04_Array_Generation.md`)
@@ -239,7 +239,7 @@ The complete capacitor design workflow consists of three sequential phases:
 - Place dummy capacitors according to array configuration
 - Follow rules in `04_Array_Generation.md`
 
-### Step 4: Verification (MANDATORY - all steps required)
+### Step 4: Verification (all steps required)
 
 **4a. DRC check:**
 - Run DRC on generated array
@@ -257,7 +257,7 @@ The complete capacitor design workflow consists of three sequential phases:
 - Verify connection groups have correct capacitance values (1C, 2C, 4C, etc.)
 - If incorrect: Fix and re-run PEX until values match expected
 
-**Phase 3 is NOT complete until DRC passes, PEX is performed, AND capacitance values are verified as correct.**
+**Phase 3 is not complete until DRC passes, PEX is performed, and capacitance values are verified as correct.**
 
 ---
 
@@ -266,13 +266,13 @@ The complete capacitor design workflow consists of three sequential phases:
 ### Code Generation
 - **Python functions**: Define `compute_geometry()` and `render_skill()` in Round 1, reuse in subsequent rounds
 - **SKILL flattening**: All repetition/logic in Python; SKILL contains only flat statements
-- **Complete generation**: Every round must generate COMPLETE SKILL with ALL geometry and ALL via arrays
+- **Complete generation**: Every round must generate complete SKILL with all geometry and all via arrays
 - **Template reuse**: Cache SKILL template structure, only update parameter values between rounds
 
 ### View Management
 - Each iteration uses a new view (`layout1`, `layout2`, etc.) - no clearing needed
-- Do NOT use UI-dependent APIs (`ge*`) or selection-based deletion
-- Only use `clear_all_figures_in_window()` when deliberately redrawing in the SAME view
+- Do not use UI-dependent APIs (`ge*`) or selection-based deletion
+- Only use `clear_all_figures_in_window()` when deliberately redrawing in the same view
 
 ### Parameter Updates
 - Update parameter values in SKILL via string replacement
@@ -288,7 +288,7 @@ The complete capacitor design workflow consists of three sequential phases:
 ### Iteration Control
 - Execute all rounds automatically in sequence
 - End after 5 rounds OR when absolute relative error ≤ 1%
-- Do NOT terminate earlier
+- Do not terminate earlier
 - Continue automatically between rounds without pausing
 
 ---

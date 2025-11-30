@@ -1,12 +1,12 @@
 # SKILL Programming Basics
 
-## 📚 Introduction
+## Introduction
 
-SKILL is Cadence's scripting language for Virtuoso. This document covers only the **essential basics** needed for simple operations.
+SKILL is Cadence's scripting language for Virtuoso. This document covers only the essential basics needed for simple operations.
 
 ---
 
-## 🔤 Basic Syntax
+## Basic Syntax
 
 ### Variables
 
@@ -30,7 +30,7 @@ comment
 
 ---
 
-## 📝 Basic Data Types
+## Basic Data Types
 
 ### Numbers
 
@@ -55,7 +55,7 @@ emptyList = list()
 
 ---
 
-## 🖨️ Output
+## Output
 
 ### Print to CIW
 
@@ -71,7 +71,7 @@ printf("String: %s\n" "text")
 
 ---
 
-## 🔄 Control Flow
+## Control Flow
 
 ### Conditionals
 
@@ -101,7 +101,7 @@ unless( condition
 
 ---
 
-## 🔁 Loops
+## Loops
 
 ### For Loop
 
@@ -121,7 +121,7 @@ foreach( item myList
 
 ---
 
-## 📦 Functions
+## Functions
 
 ### Define Function
 
@@ -140,7 +140,7 @@ result = myFunction(5 3)
 
 ---
 
-## 🎨 Basic Virtuoso Operations
+## Basic Virtuoso Operations
 
 ### Get Current Cellview
 
@@ -169,7 +169,7 @@ dbCreateRect(
 
 ---
 
-## 📏 Coordinate System
+## Coordinate System
 
 ### Points
 
@@ -192,7 +192,7 @@ bbox = list(0:0 100:100)  ; lower-left : upper-right
 
 ---
 
-## 🔧 Common Patterns
+## Common Patterns
 
 ### Check if Variable Exists
 
@@ -225,7 +225,7 @@ else
 
 ---
 
-## 📝 Loading Files
+## Loading Files
 
 ### Load SKILL File
 
@@ -241,7 +241,7 @@ CIW> load("my_script.il")
 
 ---
 
-## 💡 Quick Reference
+## Quick Reference
 
 ### Common Functions
 
@@ -270,13 +270,12 @@ strlen(str)
 
 ---
 
-## 🎯 Next Steps
+## Next Steps
 
-This covers only the **absolute basics**. For specialized tasks:
+This covers only the absolute basics. For specialized tasks:
 
 1. Use `search_knowledge()` to find relevant knowledge
 2. Load specific domain knowledge when needed
 3. Refer to specialized documentation for complex operations
 
-**Remember**: This is intentionally minimal. Real-world SKILL programming requires loading specialized knowledge on-demand!
-
+Remember: This is intentionally minimal. Real-world SKILL programming requires loading specialized knowledge on-demand.

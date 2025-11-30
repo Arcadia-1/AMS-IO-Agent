@@ -1,22 +1,21 @@
 #!/bin/csh -f
-# skillbridge 配置文件生成脚本
 # Generate virtuoso_setup.il for skillbridge
-# 作者: AMS-IO-Agent Team
-# 版本: 1.0.0
+# Author: AMS-IO-Agent Team
+# Version: 1.0.0
 
-# 设置错误时退出
+# Exit on error
 set exit_on_error
 
-# 日志函数
+# Logging functions
 alias print_info 'echo "[INFO]" \!*'
 alias print_success 'echo "[SUCCESS]" \!*'
 alias print_error 'echo "[ERROR]" \!*'
 
-# 获取项目根目录（脚本在 setup/ 子目录中）
+# Get project root directory (script is in setup/ subdirectory)
 set CURPWD = `pwd`
 set SCRIPT_DIR = `dirname $0`
 
-# 获取脚本所在目录的绝对路径
+# Get absolute path of script directory
 if ("$SCRIPT_DIR" == ".") then
     set SCRIPT_ABS = "$CURPWD"
 else
@@ -25,7 +24,7 @@ else
     cd $CURPWD
 endif
 
-# 项目根目录是脚本目录的上一级（因为脚本在 setup/ 中）
+# Project root is parent of script directory (since script is in setup/)
 cd "$SCRIPT_ABS/.."
 set PROJECT_ROOT = "`pwd`"
 cd $CURPWD
@@ -34,17 +33,17 @@ cd $CURPWD
 main:
     cd "$PROJECT_ROOT"
     
-    # 定义输出文件路径
-    set OUTPUT_FILE = "setup/virtuoso_setup.il"
+    # Define output file path (in project root)
+    set OUTPUT_FILE = "virtuoso_setup.il"
     set OUTPUT_FULL_PATH = "$PROJECT_ROOT/$OUTPUT_FILE"
     
-    # 获取 skillbridge 路径（从虚拟环境）
+    # Get skillbridge path (from virtual environment)
     if (! -f ".venv/bin/skillbridge") then
-        print_error "[skillbridge] 未安装在虚拟环境中 [请运行: pip install skillbridge]"
+        print_error "[skillbridge] Not installed in virtual environment [Please run: pip install skillbridge]"
         exit 1
     endif
     
-    # 使用虚拟环境中的 skillbridge
+    # Use skillbridge from virtual environment
     .venv/bin/skillbridge path >& /tmp/skillbridge_path.tmp
     set SKILLBRIDGE_PATH = `grep "python_server.il" /tmp/skillbridge_path.tmp | head -1`
     rm -f /tmp/skillbridge_path.tmp
@@ -64,14 +63,14 @@ main:
     /bin/printf 'load("%s")\n' "$SKILLBRIDGE_PATH" >> $OUTPUT_FILE
     echo "" >> $OUTPUT_FILE
     echo "; Load screenshot script" >> $OUTPUT_FILE
-    /bin/printf 'load("%s")\n' "$PROJECT_ROOT/scripts/screenshot_complete.il" >> $OUTPUT_FILE
+    /bin/printf 'load("%s")\n' "$PROJECT_ROOT/src/skill/screenshot_complete.il" >> $OUTPUT_FILE
     echo "" >> $OUTPUT_FILE
     echo "; Start Python server" >> $OUTPUT_FILE
     echo "pyStartServer" >> $OUTPUT_FILE
     echo "" >> $OUTPUT_FILE
     echo "; Setup complete! Ensure USE_RAMIC_BRIDGE=false in .env" >> $OUTPUT_FILE
     
-    # 更新 .env 文件
+    # Update .env file
     if (-f ".env") then
         grep -q "USE_RAMIC_BRIDGE" .env
         if ($status == 0) then
@@ -79,12 +78,9 @@ main:
         endif
     endif
     
-    print_success "[skillbridge] virtuoso_setup.il 已生成: $OUTPUT_FULL_PATH [.env: USE_RAMIC_BRIDGE=false]"
-    echo ""
-    /bin/echo '[下一步] 在 Virtuoso CIW 中执行: load("'$OUTPUT_FULL_PATH'")'
-    echo ""
+    print_success "[skillbridge] virtuoso_setup.il generated: $OUTPUT_FULL_PATH [.env: USE_RAMIC_BRIDGE=false]"
     exit 0
 
-# 运行主函数
+# Run main function
 goto main
 

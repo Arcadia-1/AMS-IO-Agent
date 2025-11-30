@@ -12,16 +12,16 @@ class VoltageDomainHandler:
     @staticmethod
     def get_voltage_domain(component: dict) -> str:
         """Get the voltage domain type of the component (digital or analog)"""
-        # If the component has pin_config, determine from pin_config
-        if "pin_config" in component:
-            pin_config = component["pin_config"]
+        # If the component has pin_connection, determine from pin_connection
+        if "pin_connection" in component:
+            pin_connection = component["pin_connection"]
             
             # Check if it contains digital domain related pins
             digital_pins = ["VDD", "VSS", "VDDPST", "VSSPST"]
             analog_pins = ["TACVDD", "TACVSS", "TAVDD", "TAVSS"]
             
-            has_digital = any(pin in pin_config for pin in digital_pins)
-            has_analog = any(pin in pin_config for pin in analog_pins)
+            has_digital = any(pin in pin_connection for pin in digital_pins)
+            has_analog = any(pin in pin_connection for pin in analog_pins)
             
             if has_digital and not has_analog:
                 return "digital"
@@ -51,7 +51,7 @@ class VoltageDomainHandler:
                 return "unknown"
         
         # If no configuration, use device type to determine (backward compatibility)
-        device_type = component.get("device_type", "")
+        device = component.get("device", "")
         
         # Digital voltage domain
         digital_devices = [
@@ -75,9 +75,9 @@ class VoltageDomainHandler:
             "PCORNERA_G"  # Analog corner
         ]
         
-        if device_type in digital_devices:
+        if device in digital_devices:
             return "digital"
-        elif device_type in analog_devices:
+        elif device in analog_devices:
             return "analog"
         else:
             return "unknown"
@@ -85,30 +85,30 @@ class VoltageDomainHandler:
     @staticmethod
     def get_voltage_domain_key(component: dict) -> str:
         """Get the voltage domain key of the component, used to determine if it's the same voltage domain"""
-        # If the component has pin_config, determine from pin_config
-        if "pin_config" in component:
-            pin_config = component["pin_config"]
+        # If the component has pin_connection, determine from pin_connection
+        if "pin_connection" in component:
+            pin_connection = component["pin_connection"]
             
             # Check digital domain related pins
             digital_pins = ["VDD", "VSS", "VDDPST", "VSSPST"]
             analog_pins = ["TACVDD", "TACVSS", "TAVDD", "TAVSS"]
             
-            has_digital = any(pin in pin_config for pin in digital_pins)
-            has_analog = any(pin in pin_config for pin in analog_pins)
+            has_digital = any(pin in pin_connection for pin in digital_pins)
+            has_analog = any(pin in pin_connection for pin in analog_pins)
             
             if has_digital and not has_analog:
                 # Digital domain, determine based on VDD/VSS label
-                vdd_label = pin_config.get("VDD", {}).get("label", "")
-                vss_label = pin_config.get("VSS", {}).get("label", "")
+                vdd_label = pin_connection.get("VDD", {}).get("label", "")
+                vss_label = pin_connection.get("VSS", {}).get("label", "")
                 return f"DIGITAL_{vdd_label}_{vss_label}"
             elif has_analog:
                 # Analog domain, determine based on TACVDD/TACVSS label
-                tacvdd_label = pin_config.get("TACVDD", {}).get("label", "")
-                tacvss_label = pin_config.get("TACVSS", {}).get("label", "")
+                tacvdd_label = pin_connection.get("TACVDD", {}).get("label", "")
+                tacvss_label = pin_connection.get("TACVSS", {}).get("label", "")
                 if not tacvdd_label:
-                    tacvdd_label = pin_config.get("TAVDD", {}).get("label", "")
+                    tacvdd_label = pin_connection.get("TAVDD", {}).get("label", "")
                 if not tacvss_label:
-                    tacvss_label = pin_config.get("TAVSS", {}).get("label", "")
+                    tacvss_label = pin_connection.get("TAVSS", {}).get("label", "")
                 return f"ANALOG_{tacvdd_label}_{tacvss_label}"
             else:
                 return "unknown"
@@ -126,7 +126,7 @@ class VoltageDomainHandler:
                 return f"{voltage_domain['power']}_{voltage_domain['ground']}"
         
         # If no configuration, use device type to determine (backward compatibility)
-        device_type = component.get("device_type", "")
+        device = component.get("device", "")
         
         # Define device type to voltage domain mapping
         device_to_voltage_domain = {
@@ -165,7 +165,7 @@ class VoltageDomainHandler:
             "PVSS3AC_H_G": "VDD3AC_VSS3AC",
         }
         
-        return device_to_voltage_domain.get(device_type, "unknown")
+        return device_to_voltage_domain.get(device, "unknown")
     
     @staticmethod
     def is_same_digital_domain(component1: dict, component2: dict) -> bool:
@@ -208,7 +208,7 @@ class VoltageDomainHandler:
     @staticmethod
     def is_voltage_domain_provider(component: dict) -> bool:
         """Determine if the component is a voltage domain provider"""
-        device_type = component.get("device_type", "")
+        device = component.get("device", "")
         
         # Voltage domain provider device types
         provider_devices = [
@@ -219,12 +219,12 @@ class VoltageDomainHandler:
             "PVSS3A_V_G", "PVSS3A_H_G",
         ]
         
-        return device_type in provider_devices
+        return device in provider_devices
     
     @staticmethod
     def is_voltage_domain_user(component: dict) -> bool:
         """Determine if the component is a voltage domain user"""
-        device_type = component.get("device_type", "")
+        device = component.get("device", "")
         
         # Voltage domain user device types
         user_devices = [
@@ -236,4 +236,4 @@ class VoltageDomainHandler:
             "PDDW16SDGZ_V_G", "PDDW16SDGZ_H_G"
         ]
         
-        return device_type in user_devices 
+        return device in user_devices 
