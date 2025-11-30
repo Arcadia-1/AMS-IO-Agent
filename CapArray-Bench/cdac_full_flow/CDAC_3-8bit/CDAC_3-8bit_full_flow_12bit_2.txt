@@ -1,0 +1,37 @@
+Task: Design a complete CDAC capacitor system in three phases:
+1. Phase 1: Design unit H-shape capacitor with target capacitance of 6 fF
+2. Phase 2: Generate dummy capacitor based on the unit capacitor
+3. Phase 3: Generate capacitor array using the unit and dummy capacitors
+
+Design constraints:
+- Target capacitance: 6 fF
+- Height constraint: less than 2 µm
+- Low parasitic capacitance to ground required
+- Top plates connected together, placed on outside; bottom plates in middle for adjacency
+
+Configuration:
+- Technology: 28nm process node
+- Library: LLM_Layout_Design
+- Cell names: C_MAIN_6fF_full_flow_12bit_2 (unit), C_DUMMY_6fF_full_flow_12bit_2 (dummy), C_CDAC_6fF_full_flow_12bit_2 (array)
+- CDAC array layout file: /home/lixintian/AMS-IO-Agent/CapArray-Bench/floorplan/CDAC_3-8bit.xlsx, Sheet name: 12bit_2.
+
+Phase 1 - Unit Capacitor:
+1. Generate unit H-shape capacitor SKILL code
+2. Execute the generated SKILL code using run_il_file or run_il_with_screenshot tool
+3. Run DRC verification using run_drc tool on the unit cell
+4. Run PEX extraction using run_pex tool on the unit cell
+5. Verify capacitance meets target (6 fF) and iterate if necessary
+
+Phase 2 - Dummy Capacitor:
+1. Generate dummy capacitor SKILL code based on the unit capacitor
+2. Execute the generated SKILL code
+3. Run DRC verification on the dummy cell
+4. Run PEX extraction on the dummy cell
+
+Phase 3 - CDAC Array:
+1. Generate CDAC array SKILL code using Python for calculations, output results as hard-coded values in SKILL
+2. Execute the generated SKILL code using run_il_file or run_il_with_screenshot tool
+3. Run DRC verification using run_drc tool on the generated array cell
+4. Run PEX extraction using run_pex tool on the generated array cell
+5. Verify the results and iterate if necessary (fix errors, regenerate if DRC fails, etc.)
+

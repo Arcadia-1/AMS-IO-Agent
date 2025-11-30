@@ -1,0 +1,688 @@
+{
+  "ring_config": {
+    "width": 8,
+    "height": 8,
+    "placement_order": "counterclockwise"
+  },
+  "instances": [
+    {
+      "name": "VINP",
+      "device": "PDB3AC_H_G",
+      "position": "left_0",
+      "type": "pad",
+      "pin_connection": {
+        "AIO": {
+          "label": "VINP"
+        },
+        "TACVSS": {
+          "label": "VSSIB"
+        },
+        "TACVDD": {
+          "label": "VDDIB"
+        },
+        "VSS": {
+          "label": "GIOL"
+        }
+      }
+    },
+    {
+      "name": "VINN",
+      "device": "PDB3AC_H_G",
+      "position": "left_1",
+      "type": "pad",
+      "pin_connection": {
+        "AIO": {
+          "label": "VINN"
+        },
+        "TACVSS": {
+          "label": "VSSIB"
+        },
+        "TACVDD": {
+          "label": "VDDIB"
+        },
+        "VSS": {
+          "label": "GIOL"
+        }
+      }
+    },
+    {
+      "name": "VIP",
+      "device": "PDB3AC_H_G",
+      "position": "left_2",
+      "type": "pad",
+      "pin_connection": {
+        "AIO": {
+          "label": "VIP"
+        },
+        "TACVSS": {
+          "label": "VSSIB"
+        },
+        "TACVDD": {
+          "label": "VDDIB"
+        },
+        "VSS": {
+          "label": "GIOL"
+        }
+      }
+    },
+    {
+      "name": "VIM",
+      "device": "PDB3AC_H_G",
+      "position": "left_3",
+      "type": "pad",
+      "pin_connection": {
+        "AIO": {
+          "label": "VIM"
+        },
+        "TACVSS": {
+          "label": "VSSIB"
+        },
+        "TACVDD": {
+          "label": "VDDIB"
+        },
+        "VSS": {
+          "label": "GIOL"
+        }
+      }
+    },
+    {
+      "name": "VCM",
+      "device": "PDB3AC_H_G",
+      "position": "left_4",
+      "type": "pad",
+      "pin_connection": {
+        "AIO": {
+          "label": "VCM"
+        },
+        "TACVSS": {
+          "label": "VSSIB"
+        },
+        "TACVDD": {
+          "label": "VDDIB"
+        },
+        "VSS": {
+          "label": "GIOL"
+        }
+      }
+    },
+    {
+      "name": "VREF",
+      "device": "PDB3AC_H_G",
+      "position": "left_5",
+      "type": "pad",
+      "pin_connection": {
+        "AIO": {
+          "label": "VREF"
+        },
+        "TACVSS": {
+          "label": "VSSIB"
+        },
+        "TACVDD": {
+          "label": "VDDIB"
+        },
+        "VSS": {
+          "label": "GIOL"
+        }
+      }
+    },
+    {
+      "name": "IBVREF",
+      "device": "PDB3AC_H_G",
+      "position": "left_6",
+      "type": "pad",
+      "pin_connection": {
+        "AIO": {
+          "label": "IBVREF"
+        },
+        "TACVSS": {
+          "label": "VSSIB"
+        },
+        "TACVDD": {
+          "label": "VDDIB"
+        },
+        "VSS": {
+          "label": "GIOL"
+        }
+      }
+    },
+    {
+      "name": "VDDIB",
+      "device": "PVDD3AC_H_G",
+      "position": "left_7",
+      "type": "pad",
+      "pin_connection": {
+        "AVDD": {
+          "label": "VDDIB_CORE"
+        },
+        "TACVSS": {
+          "label": "VSSIB"
+        },
+        "TACVDD": {
+          "label": "VDDIB"
+        },
+        "VSS": {
+          "label": "GIOL"
+        }
+      }
+    },
+    {
+      "name": "VSSIB",
+      "device": "PVSS3AC_V_G",
+      "position": "bottom_0",
+      "type": "pad",
+      "pin_connection": {
+        "AVSS": {
+          "label": "VSSIB_CORE"
+        },
+        "TACVSS": {
+          "label": "VSSIB"
+        },
+        "TACVDD": {
+          "label": "VDDIB"
+        },
+        "VSS": {
+          "label": "GIOL"
+        }
+      }
+    },
+    {
+      "name": "VDD_CKB",
+      "device": "PVDD3AC_V_G",
+      "position": "bottom_1",
+      "type": "pad",
+      "pin_connection": {
+        "AVDD": {
+          "label": "VDD_CKB_CORE"
+        },
+        "TACVSS": {
+          "label": "VSS_CKB"
+        },
+        "TACVDD": {
+          "label": "VDD_CKB"
+        },
+        "VSS": {
+          "label": "GIOL"
+        }
+      }
+    },
+    {
+      "name": "CLKN",
+      "device": "PDB3AC_V_G",
+      "position": "bottom_2",
+      "type": "pad",
+      "pin_connection": {
+        "AIO": {
+          "label": "CLKN"
+        },
+        "TACVSS": {
+          "label": "VSS_CKB"
+        },
+        "TACVDD": {
+          "label": "VDD_CKB"
+        },
+        "VSS": {
+          "label": "GIOL"
+        }
+      }
+    },
+    {
+      "name": "CLKP",
+      "device": "PDB3AC_V_G",
+      "position": "bottom_3",
+      "type": "pad",
+      "pin_connection": {
+        "AIO": {
+          "label": "CLKP"
+        },
+        "TACVSS": {
+          "label": "VSS_CKB"
+        },
+        "TACVDD": {
+          "label": "VDD_CKB"
+        },
+        "VSS": {
+          "label": "GIOL"
+        }
+      }
+    },
+    {
+      "name": "VSS_CKB",
+      "device": "PVSS3AC_V_G",
+      "position": "bottom_4",
+      "type": "pad",
+      "pin_connection": {
+        "AVSS": {
+          "label": "VSS_CKB_CORE"
+        },
+        "TACVSS": {
+          "label": "VSS_CKB"
+        },
+        "TACVDD": {
+          "label": "VDD_CKB"
+        },
+        "VSS": {
+          "label": "GIOL"
+        }
+      }
+    },
+    {
+      "name": "D0",
+      "device": "PDDW16SDGZ_V_G",
+      "position": "bottom_5",
+      "type": "pad",
+      "direction": "output",
+      "pin_connection": {
+        "VDD": {
+          "label": "VIOL"
+        },
+        "VSS": {
+          "label": "GIOL"
+        },
+        "VDDPST": {
+          "label": "VIOH"
+        },
+        "VSSPST": {
+          "label": "GIOH"
+        }
+      }
+    },
+    {
+      "name": "D1",
+      "device": "PDDW16SDGZ_V_G",
+      "position": "bottom_6",
+      "type": "pad",
+      "direction": "output",
+      "pin_connection": {
+        "VDD": {
+          "label": "VIOL"
+        },
+        "VSS": {
+          "label": "GIOL"
+        },
+        "VDDPST": {
+          "label": "VIOH"
+        },
+        "VSSPST": {
+          "label": "GIOH"
+        }
+      }
+    },
+    {
+      "name": "D2",
+      "device": "PDDW16SDGZ_V_G",
+      "position": "bottom_7",
+      "type": "pad",
+      "direction": "output",
+      "pin_connection": {
+        "VDD": {
+          "label": "VIOL"
+        },
+        "VSS": {
+          "label": "GIOL"
+        },
+        "VDDPST": {
+          "label": "VIOH"
+        },
+        "VSSPST": {
+          "label": "GIOH"
+        }
+      }
+    },
+    {
+      "name": "D3",
+      "device": "PDDW16SDGZ_H_G",
+      "position": "right_0",
+      "type": "pad",
+      "direction": "output",
+      "pin_connection": {
+        "VDD": {
+          "label": "VIOL"
+        },
+        "VSS": {
+          "label": "GIOL"
+        },
+        "VDDPST": {
+          "label": "VIOH"
+        },
+        "VSSPST": {
+          "label": "GIOH"
+        }
+      }
+    },
+    {
+      "name": "D4",
+      "device": "PDDW16SDGZ_H_G",
+      "position": "right_1",
+      "type": "pad",
+      "direction": "output",
+      "pin_connection": {
+        "VDD": {
+          "label": "VIOL"
+        },
+        "VSS": {
+          "label": "GIOL"
+        },
+        "VDDPST": {
+          "label": "VIOH"
+        },
+        "VSSPST": {
+          "label": "GIOH"
+        }
+      }
+    },
+    {
+      "name": "D5",
+      "device": "PDDW16SDGZ_H_G",
+      "position": "right_2",
+      "type": "pad",
+      "direction": "output",
+      "pin_connection": {
+        "VDD": {
+          "label": "VIOL"
+        },
+        "VSS": {
+          "label": "GIOL"
+        },
+        "VDDPST": {
+          "label": "VIOH"
+        },
+        "VSSPST": {
+          "label": "GIOH"
+        }
+      }
+    },
+    {
+      "name": "D6",
+      "device": "PDDW16SDGZ_H_G",
+      "position": "right_3",
+      "type": "pad",
+      "direction": "output",
+      "pin_connection": {
+        "VDD": {
+          "label": "VIOL"
+        },
+        "VSS": {
+          "label": "GIOL"
+        },
+        "VDDPST": {
+          "label": "VIOH"
+        },
+        "VSSPST": {
+          "label": "GIOH"
+        }
+      }
+    },
+    {
+      "name": "D7",
+      "device": "PDDW16SDGZ_H_G",
+      "position": "right_4",
+      "type": "pad",
+      "direction": "output",
+      "pin_connection": {
+        "VDD": {
+          "label": "VIOL"
+        },
+        "VSS": {
+          "label": "GIOL"
+        },
+        "VDDPST": {
+          "label": "VIOH"
+        },
+        "VSSPST": {
+          "label": "GIOH"
+        }
+      }
+    },
+    {
+      "name": "D8",
+      "device": "PDDW16SDGZ_H_G",
+      "position": "right_5",
+      "type": "pad",
+      "direction": "output",
+      "pin_connection": {
+        "VDD": {
+          "label": "VIOL"
+        },
+        "VSS": {
+          "label": "GIOL"
+        },
+        "VDDPST": {
+          "label": "VIOH"
+        },
+        "VSSPST": {
+          "label": "GIOH"
+        }
+      }
+    },
+    {
+      "name": "D9",
+      "device": "PDDW16SDGZ_H_G",
+      "position": "right_6",
+      "type": "pad",
+      "direction": "output",
+      "pin_connection": {
+        "VDD": {
+          "label": "VIOL"
+        },
+        "VSS": {
+          "label": "GIOL"
+        },
+        "VDDPST": {
+          "label": "VIOH"
+        },
+        "VSSPST": {
+          "label": "GIOH"
+        }
+      }
+    },
+    {
+      "name": "D10",
+      "device": "PDDW16SDGZ_H_G",
+      "position": "right_7",
+      "type": "pad",
+      "direction": "output",
+      "pin_connection": {
+        "VDD": {
+          "label": "VIOL"
+        },
+        "VSS": {
+          "label": "GIOL"
+        },
+        "VDDPST": {
+          "label": "VIOH"
+        },
+        "VSSPST": {
+          "label": "GIOH"
+        }
+      }
+    },
+    {
+      "name": "D11",
+      "device": "PDDW16SDGZ_V_G",
+      "position": "top_0",
+      "type": "pad",
+      "direction": "output",
+      "pin_connection": {
+        "VDD": {
+          "label": "VIOL"
+        },
+        "VSS": {
+          "label": "GIOL"
+        },
+        "VDDPST": {
+          "label": "VIOH"
+        },
+        "VSSPST": {
+          "label": "GIOH"
+        }
+      }
+    },
+    {
+      "name": "D12",
+      "device": "PDDW16SDGZ_V_G",
+      "position": "top_1",
+      "type": "pad",
+      "direction": "output",
+      "pin_connection": {
+        "VDD": {
+          "label": "VIOL"
+        },
+        "VSS": {
+          "label": "GIOL"
+        },
+        "VDDPST": {
+          "label": "VIOH"
+        },
+        "VSSPST": {
+          "label": "GIOH"
+        }
+      }
+    },
+    {
+      "name": "D13",
+      "device": "PDDW16SDGZ_V_G",
+      "position": "top_2",
+      "type": "pad",
+      "direction": "output",
+      "pin_connection": {
+        "VDD": {
+          "label": "VIOL"
+        },
+        "VSS": {
+          "label": "GIOL"
+        },
+        "VDDPST": {
+          "label": "VIOH"
+        },
+        "VSSPST": {
+          "label": "GIOH"
+        }
+      }
+    },
+    {
+      "name": "D14",
+      "device": "PDDW16SDGZ_V_G",
+      "position": "top_3",
+      "type": "pad",
+      "direction": "output",
+      "pin_connection": {
+        "VDD": {
+          "label": "VIOL"
+        },
+        "VSS": {
+          "label": "GIOL"
+        },
+        "VDDPST": {
+          "label": "VIOH"
+        },
+        "VSSPST": {
+          "label": "GIOH"
+        }
+      }
+    },
+    {
+      "name": "VIOL",
+      "device": "PVDD1DGZ_V_G",
+      "position": "top_4",
+      "type": "pad",
+      "pin_connection": {
+        "VDD": {
+          "label": "VIOL"
+        },
+        "VSS": {
+          "label": "GIOL"
+        },
+        "VDDPST": {
+          "label": "VIOH"
+        },
+        "VSSPST": {
+          "label": "GIOH"
+        }
+      }
+    },
+    {
+      "name": "GIOL",
+      "device": "PVSS1DGZ_V_G",
+      "position": "top_5",
+      "type": "pad",
+      "pin_connection": {
+        "VDD": {
+          "label": "VIOL"
+        },
+        "VSS": {
+          "label": "GIOL"
+        },
+        "VDDPST": {
+          "label": "VIOH"
+        },
+        "VSSPST": {
+          "label": "GIOH"
+        }
+      }
+    },
+    {
+      "name": "VIOH",
+      "device": "PVDD2POC_V_G",
+      "position": "top_6",
+      "type": "pad",
+      "pin_connection": {
+        "VDD": {
+          "label": "VIOL"
+        },
+        "VSS": {
+          "label": "GIOL"
+        },
+        "VDDPST": {
+          "label": "VIOH"
+        },
+        "VSSPST": {
+          "label": "GIOH"
+        }
+      }
+    },
+    {
+      "name": "GIOH",
+      "device": "PVSS2DGZ_V_G",
+      "position": "top_7",
+      "type": "pad",
+      "pin_connection": {
+        "VDD": {
+          "label": "VIOL"
+        },
+        "VSS": {
+          "label": "GIOL"
+        },
+        "VDDPST": {
+          "label": "VIOH"
+        },
+        "VSSPST": {
+          "label": "GIOH"
+        }
+      }
+    },
+    {
+      "name": "CORNER_BOTTOMLEFT",
+      "device": "PCORNERA_G",
+      "position": "bottom_left",
+      "type": "corner"
+    },
+    {
+      "name": "CORNER_BOTTOMRIGHT",
+      "device": "PCORNER_G",
+      "position": "bottom_right",
+      "type": "corner"
+    },
+    {
+      "name": "CORNER_TOPRIGHT",
+      "device": "PCORNER_G",
+      "position": "top_right",
+      "type": "corner"
+    },
+    {
+      "name": "CORNER_TOPLEFT",
+      "device": "PCORNERA_G",
+      "position": "top_left",
+      "type": "corner"
+    }
+  ]
+}

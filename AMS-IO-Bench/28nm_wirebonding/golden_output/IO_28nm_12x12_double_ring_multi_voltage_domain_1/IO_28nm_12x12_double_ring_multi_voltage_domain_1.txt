@@ -1,0 +1,22 @@
+
+IO_28nm_12x12_double_ring_multi_voltage_domain_1: |
+Task: Generate IO ring schematic and layout design for Cadence Virtuoso.
+
+  Design requirements:
+  12 pads per side. Double ring layout. Order: counterclockwise through left side, bottom side, right side, top side.
+
+
+  ======================================================================
+  SIGNAL CONFIGURATION
+  ======================================================================
+  Signal names: D0 D1 D2 D3 D4 D5 D6 D7 D8 D9 SCK SDI SDO RST SYNC VIOH GIOH VIOL GIOL VCM IBAMP IBREF AVDD AVSS VIN VIP IB1 IB2 IB3 IB4 IB5 IB6 IB7 IB8 VDD_CKB VSS_CKB CLKP CLKN IBIAS IBIAS2 IBIAS3 IBIAS4 VDDSAR VSSSAR IBIAS5 IBIAS6 IBIAS7 IBIAS8. Additionally, please insert an inner ring pad VCM2 between VCM and IBAMP, insert an inner ring pad D10 between D8 and D9. Voltage domains: Digital domain uses VIOH, GIOH, VIOL, GIOL as voltage domain. From VCM to IB8 uses AVDD and AVSS as voltage domain. From VDD_CKB to CLKN uses VDD_CKB and VSS_CKB as voltage domain. From IBIAS to IBIAS8 uses VDDSAR and VSSSAR as voltage domain
+
+
+  ======================================================================
+  DESIGN CONFIGURATION
+  ======================================================================
+  Configuration:
+  - Technology: 28nm process node
+  - Library: LLM_Layout_Design
+  - Cell name: IO_RING_12x12_double_ring_multi_voltage_domain_1
+  - View: schematic and layout

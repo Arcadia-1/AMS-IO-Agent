@@ -1,0 +1,27 @@
+Task: 
+1. Phase 1: Design unit I-shape capacitor with target capacitance of 4 fF
+2. Phase 2: Generate dummy capacitor based on the unit capacitor
+
+Design constraints:
+- Target capacitance: 4 fF
+- Height constraint: less than 2 µm
+- Low parasitic capacitance to ground required
+
+Configuration:
+- Technology: 28nm process node
+- Library: LLM_Layout_Design
+- Cell names: C_MAIN_4fF_I (unit), C_DUMMY_4fF_I (dummy)
+
+Phase 1 - Unit Capacitor:
+1. Generate unit I-shape capacitor SKILL code with target capacitance of 4 fF
+2. Execute the generated SKILL code using run_il_file or run_il_with_screenshot tool
+3. Run DRC verification using run_drc tool on the unit cell
+4. Run PEX extraction using run_pex tool on the unit cell
+5. Verify capacitance meets target (4 fF) and iterate if necessary
+
+Phase 2 - Dummy Capacitor:
+1. Generate dummy capacitor SKILL code based on the unit capacitor
+2. Execute the generated SKILL code
+3. Run DRC verification on the dummy cell
+4. Run PEX extraction on the dummy cell
+

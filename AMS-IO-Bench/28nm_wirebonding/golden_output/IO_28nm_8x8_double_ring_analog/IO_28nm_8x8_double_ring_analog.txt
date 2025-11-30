@@ -1,0 +1,30 @@
+
+IO_28nm_8x8_double_ring_analog: |
+Task: Generate IO ring schematic and layout design for Cadence Virtuoso.
+
+  Design requirements:
+  8 pads per side. Double ring layout. Order: counterclockwise through left side, bottom side, right side, top side.
+
+
+  ======================================================================
+  SIGNAL CONFIGURATION
+  ======================================================================
+  Signal names: VINP VINN VIP VIM VCM VREF AVDD AVSS VREF1 VREF2 VREF3 VREF4 IBIAS IBIAS2 VAMP VAMP2 VAMP3 VAMP4 VAMP5 VAMP6 VAMP7 VAMP8 VAMP9 VAMP10 VAMP11 VAMP12 VAMP13 VAMP14 VAMP15 VAMP16 VAMP17 VAMP18. Additionally, please insert an inner ring pad VREF_CORE between VREF and AVDD, insert an inner ring pad VAMP_CORE between VAMP and VAMP2, insert an inner ring pad IBIAS_CORE between IBIAS and IBIAS2, insert an inner ring pad VCM_CORE between VIM and VCM
+
+
+
+  ======================================================================
+  VOLTAGE DOMAIN CONFIGURATION
+  ======================================================================
+  Voltage domain requirements:
+  - analog signals use analog domain voltage domain (AVDD/AVSS), digital signals use digital domain voltage domain (VIOL/GIOL/VIOH/GIOH)
+
+
+  ======================================================================
+  DESIGN CONFIGURATION
+  ======================================================================
+  Configuration:
+  - Technology: 28nm process node
+  - Library: LLM_Layout_Design
+  - Cell name: IO_RING_8x8_double_ring_analog
+  - View: schematic and layout

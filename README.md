@@ -23,6 +23,7 @@ AMS-IO-Agent leverages large language models to automate complex analog and mixe
 ### Prerequisites
 
 - Python 3.8 or higher
+- `csh` (C Shell) - usually pre-installed on Linux/macOS
 - Cadence Virtuoso (for actual design execution)
 - API key for supported LLM providers (Claude, OpenAI, DeepSeek, etc.)
 
@@ -34,10 +35,27 @@ AMS-IO-Agent leverages large language models to automate complex analog and mixe
    cd AMS-IO-Agent
    ```
 
-2. **Run the setup script:**
+2. **Run the quick setup script (Recommended):**
+   ```csh
+   ./quick_start.csh
+   ```
+   
+   This one-command script will:
+   - ✅ Automatically fix executable permissions
+   - ✅ Create Python virtual environment
+   - ✅ Install all dependencies
+   - ✅ Generate configuration files
+   - ✅ Set up Virtuoso integration
+   
+   **Alternative - Manual Setup:**
    ```bash
-   cd setup
-   source setup.csh
+   ./setup/setup.csh
+   ```
+   
+   **Troubleshooting:** If you encounter "Permission denied" error:
+   ```csh
+   chmod +x quick_start.csh setup/*.csh
+   ./quick_start.csh
    ```
 
    The setup script will:

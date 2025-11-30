@@ -1,0 +1,30 @@
+
+IO_180nm_10x6_single_ring_mixed_1: |
+Task: Generate IO ring schematic and layout design for Cadence Virtuoso.
+
+  Design requirements:
+  10 pads on left and right sides, 6 pads on top and bottom sides. Single ring layout. Order: counterclockwise through left side, bottom side, right side, top side.
+
+
+  ======================================================================
+  SIGNAL CONFIGURATION
+  ======================================================================
+  Signal names: D0 D1 D2 D3 D4 D5 D6 D7 D8 D9 SCK SDI SDO RST SYNC CLKO VIOL GIOL VIOH GIOH VCM3 VCM2 VCM IBAMP IBREF AVDD AVSS VIN VIP GND VDDI VSSI
+
+
+
+  ======================================================================
+  VOLTAGE DOMAIN CONFIGURATION
+  ======================================================================
+  Voltage domain requirements:
+  - digital IO signals need to connect to digital domain voltage domain (VIOL/GIOL/VIOH/GIOH), analog signals use analog domain voltage domain (AVDD/AVSS)
+
+
+  ======================================================================
+  DESIGN CONFIGURATION
+  ======================================================================
+  Configuration:
+  - Technology: 180nm process node
+  - Library: LLM_Layout_Design
+  - Cell name: IO_RING_10x6_single_ring_mixed_1
+  - View: schematic and layout

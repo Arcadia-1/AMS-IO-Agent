@@ -1,0 +1,22 @@
+
+IO_180nm_10x10_double_ring_multi_voltage_domain: |
+Task: Generate IO ring schematic and layout design for Cadence Virtuoso.
+
+  Design requirements:
+  10 pads per side. Double ring layout. Order: counterclockwise through left side, bottom side, right side, top side.
+
+
+  ======================================================================
+  SIGNAL CONFIGURATION
+  ======================================================================
+  Signal names: VINP VINN VIP VIM VCM VREF AVDD AVSS VDDIB VSSIB VDD_CKB VSS_CKB VDD_DAT VSS_DAT VREFH VREFN VDD_ADC VSS_ADC VDD_DAC VSS_DAC D0 D1 D2 D3 D4 D5 D6 D7 D8 D9 D10 D11 D12 D13 D14 D15 VIOL GIOL VIOH GIOH. Additionally, please insert an inner ring pad VREF_CORE between VCM and VREF, insert an inner ring pad VAMP_CORE between VINP and VINN, insert an inner ring pad IBIAS_CORE between VIP and VIM, insert an inner ring pad ADC_CORE between VDD_ADC and VSS_ADC. Voltage domains: Digital domain uses VIOH, GIOH, VIOL, GIOL as voltage domain. From VINP to VREF uses AVDD and AVSS as voltage domain. From VDDIB to VSSIB uses VDDIB and VSSIB as voltage domain. From VDD_CKB to VSS_CKB uses VDD_CKB and VSS_CKB as voltage domain. From VDD_DAT to VSS_DAT uses VDD_DAT and VSS_DAT as voltage domain. From VREFH to VREFN uses VREFH and VREFN as voltage domain. From VDD_ADC to VSS_ADC uses VDD_ADC and VSS_ADC as voltage domain. From VDD_DAC to VSS_DAC uses VDD_DAC and VSS_DAC as voltage domain
+
+
+  ======================================================================
+  DESIGN CONFIGURATION
+  ======================================================================
+  Configuration:
+  - Technology: 180nm process node
+  - Library: LLM_Layout_Design
+  - Cell name: IO_RING_10x10_double_ring_multi_voltage_domain
+  - View: schematic and layout

@@ -1,0 +1,39 @@
+Task: Generate CDAC array (skip unit cell and dummy generation, but MUST execute and verify the array).
+
+Initial setup (required):
+- Load knowledge base at the beginning
+- Perform Information Retrieval (IR) to gather relevant design information
+- Use retrieved knowledge to inform CDAC array generation
+
+Unit capacitor specifications (pre-designed):
+- Shape: H-shape capacitor
+- Dimensions: unit_height = 1.920um, unit_width = 1.430um
+- Frame: frame_horizontal_width = 0.110um, frame_vertical_width = 0.110um
+- Metal layers: M7 M6 M5 M4 M3
+- BOT terminal offset: bot_offset_x = 0um, bot_offset_y = 0um
+
+Configuration:
+- Technology: 28nm process node
+- Library: LLM_Layout_Design
+- Cell names: C_MAIN_6fF (unit), C_DUMMY_6fF (dummy), C_CDAC_6fF_only_array_3bit_1 (array)
+- CDAC array layout file: /home/lixintian/AMS-IO-Agent/CapArray-Bench/floorplan/CDAC_3-8bit.xlsx, Sheet name: 3bit_1.
+
+Instructions:
+- Load knowledge base and perform IR at the start
+- Skip unit cell generation and dummy capacitor generation (assume they already exist)
+- Proceed directly to CDAC array generation
+
+MANDATORY execution steps (DO NOT SKIP):
+1. Generate CDAC array SKILL code using Python for calculations, output results as hard-coded values in SKILL
+2. Execute the generated SKILL code using run_il_file or run_il_with_screenshot tool
+3. Run DRC verification using run_drc tool on the generated array cell
+4. Run PEX extraction using run_pex tool on the generated array cell
+5. Verify the results and iterate if necessary (fix errors, regenerate if DRC fails, etc.)
+
+Important:
+- You MUST execute the SKILL code after generating it
+- You MUST run DRC to verify the layout is correct
+- You MUST run PEX to extract and verify the capacitance
+- Do not skip execution or verification steps
+- If DRC fails, fix the issues and regenerate
+- If PEX results show errors, iterate to improve the design

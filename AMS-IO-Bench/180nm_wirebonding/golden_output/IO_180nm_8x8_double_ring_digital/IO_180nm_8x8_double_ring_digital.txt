@@ -1,0 +1,30 @@
+
+IO_180nm_8x8_double_ring_digital: |
+Task: Generate IO ring schematic and layout design for Cadence Virtuoso.
+
+  Design requirements:
+  8 pads per side. Double ring layout. Order: counterclockwise through left side, bottom side, right side, top side.
+
+
+  ======================================================================
+  SIGNAL CONFIGURATION
+  ======================================================================
+  Signal names: D0 D1 D2 D3 D4 D5 D6 D7 D8 D9 D10 D11 D12 D13 D14 D15 D16 D17 D18 D19 D20 D21 D22 D23 D24 D25 D26 D27 VIOL GIOL VIOH GIOH. Additionally, please insert an inner ring pad D28 between D26 and D27, insert an inner ring pad D29 between D27 and VIOL
+
+
+
+  ======================================================================
+  VOLTAGE DOMAIN CONFIGURATION
+  ======================================================================
+  Voltage domain requirements:
+  - digital signals use digital domain voltage domain (VIOL/GIOL/VIOH/GIOH)
+
+
+  ======================================================================
+  DESIGN CONFIGURATION
+  ======================================================================
+  Configuration:
+  - Technology: 180nm process node
+  - Library: LLM_Layout_Design
+  - Cell name: IO_RING_8x8_double_ring_digital
+  - View: schematic and layout

@@ -1,0 +1,20 @@
+# Ensure shell scripts maintain executable permissions
+setup/*.csh text eol=lf
+setup/*.sh text eol=lf
+*.csh text eol=lf
+*.sh text eol=lf
+
+# Python scripts
+*.py text eol=lf
+
+# Configuration files
+*.yaml text eol=lf
+*.yml text eol=lf
+*.json text eol=lf
+
+# Markdown files
+*.md text eol=lf
+
+# Auto detect text files and normalize line endings
+* text=auto
+

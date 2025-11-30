@@ -17,9 +17,23 @@ git clone https://github.com/Arcadia-1/RAMIC.git
 cd RAMIC/AMS-IO-Agent
 ```
 
-3) 运行自动化配置脚本 `setup.csh`（此时不应该进入虚拟环境，应该在AMS-IO-Agent文件夹下直接运全局运行）
+3) 运行自动化配置脚本（此时不应该进入虚拟环境，应该在AMS-IO-Agent文件夹下直接运行）
+
+**快速启动（推荐）：**
 ```csh
-./setup.csh
+./quick_start.csh
+```
+这个脚本会自动修复权限并运行完整的设置流程。
+
+**手动设置：**
+```csh
+./setup/setup.csh
+```
+
+**注意：** 如果遇到 "Permission denied" 错误，运行：
+```csh
+chmod +x quick_start.csh setup/*.csh
+./quick_start.csh
 ```
 
 **脚本执行过程：**

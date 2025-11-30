@@ -1,0 +1,30 @@
+
+IO_28nm_3x3_single_ring_mixed: |
+Task: Generate IO ring schematic and layout design for Cadence Virtuoso.
+
+  Design requirements:
+  3 pads per side. Single ring layout. Order: counterclockwise through left side, bottom side, right side, top side.
+
+
+  ======================================================================
+  SIGNAL CONFIGURATION
+  ======================================================================
+  Signal names: VIN VSSIB VDDIB VCM D4 D3 D2 D1 VIOL GIOL VIOH GIOH
+
+
+
+  ======================================================================
+  VOLTAGE DOMAIN CONFIGURATION
+  ======================================================================
+  Voltage domain requirements:
+  - analog signals use analog domain voltage domain (VDDIB/VSSIB), digital IO signals need to connect to digital domain voltage domain (VIOL/GIOL/VIOH/GIOH)
+
+
+  ======================================================================
+  DESIGN CONFIGURATION
+  ======================================================================
+  Configuration:
+  - Technology: 28nm process node
+  - Library: LLM_Layout_Design
+  - Cell name: IO_RING_3x3_single_ring_mixed
+  - View: schematic and layout
