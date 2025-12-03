@@ -15,6 +15,24 @@ class InnerPadHandler:
         self.config = config
         self.position_calculator = PositionCalculator(config)
     
+    def sanitize_skill_instance_name(self, name: str) -> str:
+        """
+        Sanitize instance names for SKILL compatibility.
+        Replace < > with _ (underscore) for instance names.
+        
+        Args:
+            name: Original instance name
+            
+        Returns:
+            Sanitized instance name safe for SKILL
+        """
+        # Replace < > with _ (underscore) for SKILL instance name compatibility
+        sanitized = name.replace('<', '_').replace('>', '_')
+        # Collapse multiple consecutive underscores into a single underscore
+        while '__' in sanitized:
+            sanitized = sanitized.replace('__', '_')
+        return sanitized
+    
     def calculate_inner_pad_position(self, position_str: str, outer_pads: List[dict], ring_config: dict) -> tuple:
         """Calculate inner pad position and orientation, supporting clockwise/counterclockwise"""
         parts = position_str.split('_')
@@ -118,8 +136,11 @@ class InnerPadHandler:
             # Generate SKILL commands for inner pads
             library_name = ring_config.get("library_name", "tphn28hpcpgv18")
             view_name = ring_config.get("view_name", "layout")
-            skill_commands.append(f'dbCreateParamInstByMasterName(cv "{library_name}" "{device}" "{view_name}" "inner_pad_{name}_{position_str}" list({x} {y}) "{orientation}")')
-            skill_commands.append(f'dbCreateParamInstByMasterName(cv "PAD" "PAD60NU" "layout" "inner_pad60nu_{name}_{position_str}" list({x} {y}) "{orientation}")')
+            # Sanitize instance names for SKILL compatibility (replace < > with _)
+            sanitized_name = self.sanitize_skill_instance_name(f"inner_pad_{name}_{position_str}")
+            sanitized_pad_name = self.sanitize_skill_instance_name(f"inner_pad60nu_{name}_{position_str}")
+            skill_commands.append(f'dbCreateParamInstByMasterName(cv "{library_name}" "{device}" "{view_name}" "{sanitized_name}" list({x} {y}) "{orientation}")')
+            skill_commands.append(f'dbCreateParamInstByMasterName(cv "PAD" "PAD60NU" "layout" "{sanitized_pad_name}" list({x} {y}) "{orientation}")')
         
         return skill_commands
     

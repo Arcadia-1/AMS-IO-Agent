@@ -5,6 +5,7 @@ Schematic Generator - Specialized for generating SKILL code
 """
 
 import math
+import re
 import sys
 import os
 from pathlib import Path
@@ -18,6 +19,47 @@ from src.app.intent_graph.json_validator import validate_config, convert_config_
 class SchematicGenerator:
     def __init__(self, template_manager):
         self.template_manager = template_manager
+    
+    def sanitize_skill_instance_name(self, name: str) -> str:
+        """
+        Sanitize instance names for SKILL compatibility.
+        Replace < > with _ (underscore) for instance names.
+        
+        Args:
+            name: Original instance name
+            
+        Returns:
+            Sanitized instance name safe for SKILL
+        """
+        # Replace < > with _ (underscore) for SKILL instance name compatibility
+        sanitized = name.replace('<', '_').replace('>', '_')
+        # Collapse multiple consecutive underscores into a single underscore
+        while '__' in sanitized:
+            sanitized = sanitized.replace('__', '_')
+        return sanitized
+    
+    def format_skill_net_label(self, label: str) -> str:
+        """
+        Format net labels for SKILL compatibility.
+        Convert format from D<0>_CORE to D_CORE<0> to avoid SKILL syntax errors.
+        
+        Args:
+            label: Original net label (e.g., "D<0>_CORE", "SEL<0>_CORE")
+            
+        Returns:
+            Formatted net label (e.g., "D_CORE<0>", "SEL_CORE<0>")
+        """
+        # Check if label contains < > pattern like D<0>_CORE
+        # Pattern: word<characters>_suffix -> word_suffix<characters>
+        pattern = r'(\w+)<([^>]+)>_(\w+)'
+        match = re.match(pattern, label)
+        if match:
+            prefix = match.group(1)  # e.g., "D"
+            index = match.group(2)   # e.g., "0"
+            suffix = match.group(3)   # e.g., "CORE"
+            return f"{prefix}_{suffix}<{index}>"  # e.g., "D_CORE<0>"
+        # If pattern doesn't match, return as is (may already be in correct format or no brackets)
+        return label
     
     def get_device_offset(self, device_type: str) -> float:
         """Get offset based on device type and orientation"""
@@ -367,6 +409,11 @@ class SchematicGenerator:
     def generate_pin_commands(self, pin_name, label_text, pin_x, pin_y, side,
                              create_wire=True, create_label=True, create_pin=True):
         """Generate pin-related SKILL commands"""
+        # Sanitize pin_name for SKILL instance name compatibility (replace < > with _)
+        pin_name = self.sanitize_skill_instance_name(pin_name)
+        # Format label_text for SKILL net label compatibility (convert D<0>_CORE to D_CORE<0>)
+        label_text = self.format_skill_net_label(label_text)
+        
         pin_configs = {
             'right': {
                 'extend_x': 0.750, 'extend_y': 0.0,
@@ -533,6 +580,8 @@ class SchematicGenerator:
                 else:
                     # Normal format: left_0 -> left0
                     instance_name = f"{inst['name']}_{position_desc.replace('_', '')}"
+            # Sanitize instance name for SKILL compatibility (replace < > with _)
+            instance_name = self.sanitize_skill_instance_name(instance_name)
             commands.append(f'dbCreateInst(cv {device.lower()}Master "{instance_name}" \'({x_pos} {y_pos}) "{orientation}")')
             
             # Calculate rotated center point
@@ -569,6 +618,9 @@ class SchematicGenerator:
                 
                 # Mixed configuration: user-provided configuration takes priority, use default configuration for unspecified ones
                 label = pin_label if pin_label is not None else default_config['label']
+                # Format label for SKILL net label compatibility (convert D<0>_CORE to D_CORE<0>)
+                # Note: label formatting is done in generate_pin_commands, but we also format here for consistency
+                label = self.format_skill_net_label(label)
                 create_wire = pin_cfg.get('create_wire', default_config['create_wire'])
                 create_label = pin_cfg.get('create_label', default_config['create_label'])
                 create_pin = pin_cfg.get('create_pin', default_config['create_pin'])
@@ -600,7 +652,9 @@ class SchematicGenerator:
                                                          create_wire=True, create_label=False, create_pin=False)
                     commands.extend(pin_cmds)
                     # Place noConn component at wire end
-                    commands.append(f'dbCreateInst(cv noConnMaster "noConn_{instance_name}_{pin["name"]}" ' +
+                    # instance_name is already sanitized, pin['name'] should be safe (standard pin names)
+                    noConn_name = f"noConn_{instance_name}_{pin['name']}"
+                    commands.append(f'dbCreateInst(cv noConnMaster "{noConn_name}" ' +
                                      f'\'({end_x:.3f} {end_y:.3f}) "{noConn_orientation}")')
                     continue  # Skip normal pin generation
                 

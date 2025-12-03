@@ -57,6 +57,22 @@ def show_design_info(quiet=False, lib=None, cell=None, view="layout"):
         print(f"View: {view2}")
     return True
 
+def test_show_design_info_with_params():
+    """Test show_design_info with provided parameters"""
+    result = show_design_info(quiet=True, lib="TestLib", cell="TestCell", view="layout")
+    assert result is True, "show_design_info should return True when lib and cell are provided"
+
+def test_show_design_info_without_params():
+    """Test show_design_info without parameters (requires Virtuoso)"""
+    import pytest
+    try:
+        result = show_design_info(quiet=True)
+        # If we get here, Virtuoso is available
+        assert isinstance(result, bool), "show_design_info should return a boolean"
+    except Exception as e:
+        # If Virtuoso is not available, skip the test
+        pytest.skip(f"Virtuoso not available: {e}")
+
 def run_pex_flow(quiet=False, lib=None, cell=None, view="layout", tech_node="T28"):
     """Run PEX extraction"""
     if not quiet:
@@ -71,6 +87,15 @@ def run_pex_flow(quiet=False, lib=None, cell=None, view="layout", tech_node="T28
     if "PEX process failed" in result or "Remote csh execution failed" in result or "❌" in result:
         return False
     return True
+
+def test_run_pex_flow_with_params():
+    """Test run_pex_flow with provided parameters"""
+    import pytest
+    try:
+        result = run_pex_flow(quiet=True, lib="TestLib", cell="TestCell", view="layout", tech_node="T28")
+        assert isinstance(result, bool), "run_pex_flow should return a boolean"
+    except Exception as e:
+        pytest.skip(f"PEX test requires Virtuoso: {e}")
 
 def main():
     """Main function, handle command line arguments and execute corresponding operations"""

@@ -285,6 +285,299 @@ def get_rectangle_for_rotation(x: float, y: float, rotation: str, width: float, 
             return (x, y, width, height)
 
 
+def convert_components_to_devices(layout_components: List[Dict]) -> List[Dict]:
+    """
+    Convert layout components to device format for visualization
+    
+    Args:
+        layout_components: List of layout component dictionaries with:
+            - name: instance name
+            - device: device type/cell name
+            - position: (x, y) coordinates
+            - orientation: rotation (R0, R90, R180, R270)
+            - type: component type (pad, corner, filler, inner_pad)
+    
+    Returns:
+        List of device dictionaries in format compatible with visualization
+    """
+    devices = []
+    
+    for component in layout_components:
+        name = component.get("name", "")
+        device_type = component.get("device", "")
+        position = component.get("position", [0, 0])
+        orientation = component.get("orientation", "R0")
+        component_type = component.get("type", "pad")
+        
+        # Skip physical pad devices (PAD60GU, PAD60NU)
+        if device_type == 'PAD60GU' or device_type == 'PAD60NU' or \
+           (device_type.startswith('PAD') and ('60GU' in device_type or '60NU' in device_type)):
+            continue
+        
+        # Determine device category
+        device_category = 'io'  # Default
+        is_inner_pad = component_type == "inner_pad"
+        
+        if component_type == "corner":
+            device_category = 'corner'
+        elif component_type == "filler" or 'FILLER' in device_type or 'RCUT' in device_type:
+            device_category = 'filler'
+        elif is_inner_pad:
+            device_category = 'inner_pad'
+        elif 'PDB3AC' in device_type or 'PVDD' in device_type or 'PVSS' in device_type or \
+             'PDDW16SDGZ' in device_type or 'PVDD1DGZ' in device_type or 'PVSS1DGZ' in device_type or \
+             'PVSS2DGZ' in device_type or 'PVDD2POC' in device_type:
+            device_category = 'inner_pad' if is_inner_pad else 'io'
+        
+        # Extract x, y coordinates
+        if isinstance(position, (list, tuple)) and len(position) >= 2:
+            x, y = float(position[0]), float(position[1])
+        else:
+            x, y = 0.0, 0.0
+        
+        devices.append({
+            'inst_name': name,
+            'cell_name': device_type,
+            'lib_name': '',  # Not needed for visualization
+            'view_name': '',  # Not needed for visualization
+            'x': x,
+            'y': y,
+            'rotation': orientation,
+            'device_type': device_type,
+            'device_category': device_category
+        })
+    
+    return devices
+
+
+def visualize_layout_from_components(layout_components: List[Dict], output_path: str) -> str:
+    """
+    Generate visual diagram directly from layout components (without SKILL file)
+    
+    Args:
+        layout_components: List of layout component dictionaries
+        output_path: Output path for image file
+    
+    Returns:
+        Path to generated image file
+    """
+    # Convert components to device format
+    devices = convert_components_to_devices(layout_components)
+    
+    if not devices:
+        raise ValueError("No devices found in layout components")
+    
+    # Use the same visualization logic as visualize_layout
+    all_devices = devices
+    
+    # Calculate bounds from all devices
+    all_x = [d['x'] for d in all_devices]
+    all_y = [d['y'] for d in all_devices]
+    min_x, max_x = min(all_x), max(all_x)
+    min_y, max_y = min(all_y), max(all_y)
+    
+    # Add padding for visualization
+    padding = 50
+    fig_width = max(max_x - min_x + 2 * padding, 400)
+    fig_height = max(max_y - min_y + 2 * padding, 400)
+    
+    # Create figure
+    fig, ax = plt.subplots(1, 1, figsize=(fig_width/50, fig_height/50))
+    ax.set_xlim(min_x - padding, max_x + padding)
+    ax.set_ylim(min_y - padding, max_y + padding)
+    ax.set_aspect('equal')
+    ax.axis('off')
+    
+    # Sort devices by position
+    def get_sort_key(device):
+        x, y = device['x'], device['y']
+        rotation = device['rotation']
+        if rotation == 'R270':
+            return (0, y)
+        elif rotation == 'R0':
+            return (1, x)
+        elif rotation == 'R90':
+            return (2, -y)
+        elif rotation == 'R180':
+            return (3, -x)
+        else:
+            return (4, 0)
+    
+    all_devices_sorted = sorted(all_devices, key=get_sort_key)
+    
+    # Draw each device
+    for device in all_devices_sorted:
+        x, y = device['x'], device['y']
+        rotation = device['rotation']
+        device_type = device['device_type']
+        device_category = device.get('device_category', 'io')
+        inst_name = device['inst_name']
+        
+        # Get color
+        color = get_device_color(device_type)
+        
+        # Get device dimensions
+        if device_category == 'corner':
+            width = CORNER_SIZE
+            height = CORNER_SIZE
+        elif device_category == 'inner_pad':
+            width = INNER_PAD_WIDTH
+            height = INNER_PAD_HEIGHT
+        elif device_category == 'filler':
+            if 'PFILLER10' in device_type:
+                width = FILLER10_WIDTH
+                height = FILLER10_HEIGHT
+            else:
+                width = FILLER_WIDTH
+                height = FILLER_HEIGHT
+        else:
+            width = PAD_WIDTH
+            height = PAD_HEIGHT
+        
+        # Calculate rectangle based on rotation
+        rect_x, rect_y, rect_w, rect_h = get_rectangle_for_rotation(
+            x, y, rotation, width, height
+        )
+        
+        # Create rectangle
+        if device_category == 'inner_pad':
+            rect = patches.FancyBboxPatch(
+                (rect_x, rect_y), rect_w, rect_h,
+                boxstyle='round,pad=0',
+                linewidth=2, edgecolor='black', facecolor=color, alpha=0.8,
+                linestyle='--'
+            )
+        else:
+            rect = patches.Rectangle(
+                (rect_x, rect_y), rect_w, rect_h,
+                linewidth=2, edgecolor='black', facecolor=color, alpha=0.8
+            )
+        ax.add_patch(rect)
+        
+        # Add text label
+        if device_category == 'io' or device_category == 'inner_pad':
+            signal_name = inst_name
+            if device_category == 'inner_pad':
+                signal_name = re.sub(r'^inner_pad_', '', signal_name)
+                signal_name = re.sub(r'_(left|right|top|bottom)_\d+_\d+$', '', signal_name)
+            else:
+                signal_name = re.sub(r'_(left|right|top|bottom)_\d+$', '', signal_name)
+            device_type_label = device['cell_name']
+            label = f"{signal_name}:{device_type_label}"
+        elif device_category == 'corner':
+            label = device['cell_name']
+        elif device_category == 'filler':
+            label = device['cell_name']
+        else:
+            label = inst_name
+            label = re.sub(r'_(left|right|top|bottom)_\d+$', '', label)
+        
+        # Calculate center
+        center_x = rect_x + rect_w / 2
+        center_y = rect_y + rect_h / 2
+        
+        # Font size
+        if device_category == 'corner':
+            font_size = 8
+        elif device_category == 'filler':
+            font_size = 6
+        elif device_category == 'inner_pad':
+            font_size = 7
+        else:
+            font_size = 7
+        
+        # Text rotation
+        if rotation == 'R0' or rotation == 'R180':
+            text_rotation = 90
+        elif rotation == 'R90' or rotation == 'R270':
+            text_rotation = 0
+        else:
+            text_rotation = 0
+        
+        # Add text
+        ax.text(center_x, center_y, label,
+                ha='center', va='center',
+                rotation=text_rotation,
+                fontsize=font_size, fontweight='bold',
+                color='black',
+                bbox=dict(boxstyle='round,pad=0.2', facecolor='white', alpha=0.8, edgecolor='none'))
+    
+    # Add title
+    ax.set_title('IO Ring Layout Visualization', fontsize=14, fontweight='bold', pad=20)
+    
+    # Add legend
+    device_types_found = set(d['device_type'] for d in all_devices)
+    
+    digital_io_types = []
+    analog_io_types = []
+    other_types = []
+    
+    for dev_type in sorted(device_types_found):
+        if 'PDDW16SDGZ' in dev_type or 'PVDD1DGZ' in dev_type or 'PVSS1DGZ' in dev_type or \
+           'PVSS2DGZ' in dev_type or 'PVDD2POC' in dev_type:
+            digital_io_types.append(dev_type)
+        elif 'PDB3AC' in dev_type or 'PVDD1AC' in dev_type or 'PVSS1AC' in dev_type or \
+             'PVDD3AC' in dev_type or 'PVSS3AC' in dev_type or 'PVDD3A' in dev_type or 'PVSS3A' in dev_type:
+            analog_io_types.append(dev_type)
+        else:
+            other_types.append(dev_type)
+    
+    legend_elements = []
+    
+    if digital_io_types:
+        legend_elements.append(patches.Patch(facecolor='none', edgecolor='none', label='Digital IO (Green Shades)'))
+        for dev_type in sorted(digital_io_types):
+            color = get_device_color(dev_type)
+            legend_label = re.sub(r'_V_G$', '', dev_type)
+            legend_label = re.sub(r'_H_G$', '', legend_label)
+            legend_label = re.sub(r'_V$', '', legend_label)
+            legend_label = re.sub(r'_H$', '', legend_label)
+            legend_label = re.sub(r'_G$', '', legend_label)
+            legend_elements.append(patches.Patch(facecolor=color, edgecolor='black', label=legend_label))
+    
+    if analog_io_types:
+        legend_elements.append(patches.Patch(facecolor='none', edgecolor='none', label='Analog IO (Blue Shades)'))
+        for dev_type in sorted(analog_io_types):
+            color = get_device_color(dev_type)
+            legend_label = re.sub(r'_V_G$', '', dev_type)
+            legend_label = re.sub(r'_H_G$', '', legend_label)
+            legend_label = re.sub(r'_V$', '', legend_label)
+            legend_label = re.sub(r'_H$', '', legend_label)
+            legend_label = re.sub(r'_G$', '', legend_label)
+            legend_elements.append(patches.Patch(facecolor=color, edgecolor='black', label=legend_label))
+    
+    if other_types:
+        legend_elements.append(patches.Patch(facecolor='none', edgecolor='none', label='Other Components'))
+        for dev_type in sorted(other_types):
+            color = get_device_color(dev_type)
+            legend_label = re.sub(r'_V_G$', '', dev_type)
+            legend_label = re.sub(r'_H_G$', '', legend_label)
+            legend_label = re.sub(r'_V$', '', legend_label)
+            legend_label = re.sub(r'_H$', '', legend_label)
+            legend_label = re.sub(r'_G$', '', legend_label)
+            legend_elements.append(patches.Patch(facecolor=color, edgecolor='black', label=legend_label))
+    
+    if legend_elements:
+        ax.legend(handles=legend_elements,
+                 loc='upper left',
+                 bbox_to_anchor=(1.02, 1.0),
+                 fontsize=8,
+                 frameon=True,
+                 fancybox=True,
+                 shadow=False,
+                 handlelength=1.5)
+    
+    # Save figure
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    plt.tight_layout(rect=[0, 0, 0.85, 1])
+    plt.savefig(output_path, dpi=150, bbox_inches='tight')
+    plt.close()
+    
+    return str(output_path)
+
+
 def visualize_layout(il_file_path: str, output_path: Optional[str] = None) -> str:
     """
     Generate visual diagram from SKILL layout file

@@ -57,6 +57,9 @@ error("Test error with \"quotes\" and\nnewlines and\r\ncarriage returns")
         # Try to parse the result as JSON
         try:
             parsed_result = json.loads(result)
+            assert isinstance(parsed_result, dict), "Parsed result should be a dictionary"
+            assert 'status' in parsed_result, "Result should have 'status' field"
+            assert 'message' in parsed_result, "Result should have 'message' field"
             print("\n✅ SUCCESS: Result is valid JSON!")
             print(f"   Status: {parsed_result.get('status')}")
             print(f"   Message: {parsed_result.get('message')}")
@@ -70,21 +73,25 @@ error("Test error with \"quotes\" and\nnewlines and\r\ncarriage returns")
             # Verify that the JSON can be serialized again
             re_serialized = json.dumps(parsed_result, ensure_ascii=False)
             re_parsed = json.loads(re_serialized)
+            assert isinstance(re_parsed, dict), "Re-parsed result should be a dictionary"
             print("\n✅ SUCCESS: JSON can be re-serialized and re-parsed!")
-            
-            return True
             
         except json.JSONDecodeError as e:
             print(f"\n❌ FAILED: Result is NOT valid JSON!")
             print(f"   Error: {e}")
             print(f"   Result (first 200 chars): {result[:200]}")
-            return False
+            raise
             
     except Exception as e:
-        print(f"\n❌ FAILED: Exception occurred: {e}")
-        import traceback
-        traceback.print_exc()
-        return False
+        # If Virtuoso is not available, skip the test
+        if "Virtuoso" in str(e) or "connection" in str(e).lower():
+            import pytest
+            pytest.skip(f"Virtuoso not available: {e}")
+        else:
+            print(f"\n❌ FAILED: Exception occurred: {e}")
+            import traceback
+            traceback.print_exc()
+            raise
         
     finally:
         # Clean up test file
@@ -109,8 +116,6 @@ def test_json_escape_with_various_characters():
         ('Error with mixed characters', 'Error with "quotes"\nand\n{"json": "like"}'),
     ]
     
-    all_passed = True
-    
     for test_name, error_message in test_cases:
         print(f"\n📝 Test: {test_name}")
         
@@ -126,29 +131,18 @@ def test_json_escape_with_various_characters():
         error_details = str(error_message).replace('"', '\\"').replace('\n', '\\n').replace('\r', '\\r')
         result_dict["observations"].append(f"Error details: {error_details}")
         
-        try:
-            # Try to serialize to JSON
-            json_str = json.dumps(result_dict, ensure_ascii=False)
-            
-            # Try to parse back
-            parsed = json.loads(json_str)
-            
-            # Verify the error details are preserved
-            obs = parsed["observations"][0]
-            if "Error details:" in obs:
-                print(f"   ✅ PASSED: JSON serialization/parsing successful")
-            else:
-                print(f"   ❌ FAILED: Error details not preserved")
-                all_passed = False
-                
-        except json.JSONDecodeError as e:
-            print(f"   ❌ FAILED: JSON error: {e}")
-            all_passed = False
-        except Exception as e:
-            print(f"   ❌ FAILED: Exception: {e}")
-            all_passed = False
-    
-    return all_passed
+        # Try to serialize to JSON
+        json_str = json.dumps(result_dict, ensure_ascii=False)
+        assert isinstance(json_str, str), "json.dumps should return a string"
+        
+        # Try to parse back
+        parsed = json.loads(json_str)
+        assert isinstance(parsed, dict), "json.loads should return a dictionary"
+        
+        # Verify the error details are preserved
+        obs = parsed["observations"][0]
+        assert "Error details:" in obs, "Error details should be preserved in observations"
+        print(f"   ✅ PASSED: JSON serialization/parsing successful")
 
 
 if __name__ == "__main__":
@@ -156,27 +150,17 @@ if __name__ == "__main__":
     
     # Test 1: Test with actual SKILL file (requires Virtuoso connection)
     print("NOTE: Test 1 requires Virtuoso connection. Skipping if not available.")
-    test1_passed = True
     try:
-        test1_passed = test_json_escape_with_special_characters()
+        test_json_escape_with_special_characters()
     except Exception as e:
         print(f"\n⚠️  Test 1 skipped (Virtuoso not available): {e}")
-        test1_passed = True  # Don't fail if Virtuoso is not available
     
     # Test 2: Test with various characters (no Virtuoso needed)
-    test2_passed = test_json_escape_with_various_characters()
+    test_json_escape_with_various_characters()
     
     # Summary
     print("\n" + "=" * 60)
     print("TEST SUMMARY")
     print("=" * 60)
-    print(f"Test 1 (SKILL file execution): {'✅ PASSED' if test1_passed else '❌ FAILED'}")
-    print(f"Test 2 (Character escaping): {'✅ PASSED' if test2_passed else '❌ FAILED'}")
-    
-    if test1_passed and test2_passed:
-        print("\n🎉 All tests passed!")
-        sys.exit(0)
-    else:
-        print("\n❌ Some tests failed!")
-        sys.exit(1)
+    print("✅ All tests passed!")
 

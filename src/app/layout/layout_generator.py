@@ -50,6 +50,24 @@ class LayoutGenerator:
         self.skill_generator = SkillGenerator(self.config)
         self.auto_filler_generator = AutoFillerGenerator(self.config)
     
+    def sanitize_skill_instance_name(self, name: str) -> str:
+        """
+        Sanitize instance names for SKILL compatibility.
+        Replace < > with _ (underscore) for instance names.
+        
+        Args:
+            name: Original instance name
+            
+        Returns:
+            Sanitized instance name safe for SKILL
+        """
+        # Replace < > with _ (underscore) for SKILL instance name compatibility
+        sanitized = name.replace('<', '_').replace('>', '_')
+        # Collapse multiple consecutive underscores into a single underscore
+        while '__' in sanitized:
+            sanitized = sanitized.replace('__', '_')
+        return sanitized
+    
     def set_config(self, config: dict):
         """Set configuration parameters"""
         self.config.update(config)
@@ -451,11 +469,14 @@ def generate_layout_from_json(json_file: str, output_file: str = "generated_layo
         component_type = component["type"]
         position_str = component['position_str']
         
-        skill_commands.append(f'dbCreateParamInstByMasterName(cv "{ring_config.get("library_name", "tphn28hpcpgv18")}" "{device}" "{ring_config.get("view_name", "layout")}" "{name}_{position_str}" list({x} {y}) "{orientation}")')
+        # Sanitize instance names for SKILL compatibility (replace < > with _)
+        sanitized_name = generator.sanitize_skill_instance_name(f"{name}_{position_str}")
+        skill_commands.append(f'dbCreateParamInstByMasterName(cv "{ring_config.get("library_name", "tphn28hpcpgv18")}" "{device}" "{ring_config.get("view_name", "layout")}" "{sanitized_name}" list({x} {y}) "{orientation}")')
         
         # Add PAD60GU for pad components
         if component_type == "pad":
-            skill_commands.append(f'dbCreateParamInstByMasterName(cv "PAD" "PAD60GU" "layout" "pad60gu_{name}_{position_str}" list({x} {y}) "{orientation}")')
+            sanitized_pad_name = generator.sanitize_skill_instance_name(f"pad60gu_{name}_{position_str}")
+            skill_commands.append(f'dbCreateParamInstByMasterName(cv "PAD" "PAD60GU" "layout" "{sanitized_pad_name}" list({x} {y}) "{orientation}")')
     
     skill_commands.append("")
     
@@ -479,7 +500,9 @@ def generate_layout_from_json(json_file: str, output_file: str = "generated_layo
                 device = instance.get("device", "")
                 name = instance.get("name", "")
                 x, y = position
-                skill_commands.append(f'dbCreateParamInstByMasterName(cv "{ring_config.get("library_name", "tphn28hpcpgv18")}" "{device}" "{ring_config.get("view_name", "layout")}" "{name}" list({x} {y}) "{orientation}")')
+                # Sanitize instance names for SKILL compatibility (replace < > with _)
+                sanitized_name = generator.sanitize_skill_instance_name(name)
+                skill_commands.append(f'dbCreateParamInstByMasterName(cv "{ring_config.get("library_name", "tphn28hpcpgv18")}" "{device}" "{ring_config.get("view_name", "layout")}" "{sanitized_name}" list({x} {y}) "{orientation}")')
     else:
         # If JSON does not have fillers, use auto-generated fillers
         for filler in all_components_with_fillers[len(validation_components):]:  # Only process filler part
@@ -487,7 +510,9 @@ def generate_layout_from_json(json_file: str, output_file: str = "generated_layo
             orientation = filler["orientation"]
             device = filler["device"]
             name = filler["name"]
-            skill_commands.append(f'dbCreateParamInstByMasterName(cv "{ring_config.get("library_name", "tphn28hpcpgv18")}" "{device}" "{ring_config.get("view_name", "layout")}" "{name}" list({x} {y}) "{orientation}")')
+            # Sanitize instance names for SKILL compatibility (replace < > with _)
+            sanitized_name = generator.sanitize_skill_instance_name(name)
+            skill_commands.append(f'dbCreateParamInstByMasterName(cv "{ring_config.get("library_name", "tphn28hpcpgv18")}" "{device}" "{ring_config.get("view_name", "layout")}" "{sanitized_name}" list({x} {y}) "{orientation}")')
     
     skill_commands.append("")
     

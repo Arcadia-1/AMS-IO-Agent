@@ -34,6 +34,24 @@ def run_il_file(il_file_path):
     ws.close()
     return True
 
+def test_run_il_file():
+    """Test running IL file with skillbridge"""
+    # This test requires skillbridge and Virtuoso
+    import pytest
+    try:
+        from skillbridge import Workspace
+    except ImportError:
+        pytest.skip("skillbridge not available")
+    
+    # Test requires a valid IL file path
+    # For pytest compatibility, we'll skip if no file is provided
+    if len(sys.argv) < 2:
+        pytest.skip("No IL file provided for testing")
+    
+    il_file_path = sys.argv[1]
+    success = run_il_file(il_file_path)
+    assert success, "run_il_file should return True on success"
+
 def main():
     """Main function"""
     if len(sys.argv) != 2:

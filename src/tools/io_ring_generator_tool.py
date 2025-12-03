@@ -7,8 +7,9 @@ from smolagents import tool
 
 from src.app.schematic.schematic_generator import generate_multi_device_schematic
 from src.app.intent_graph.json_validator import validate_config, convert_config_to_list, get_config_statistics
-from src.app.layout.layout_generator import generate_layout_from_json
-from src.app.layout.layout_visualizer import visualize_layout
+from src.app.layout.layout_generator import generate_layout_from_json, LayoutGenerator
+from src.app.layout.layout_visualizer import visualize_layout, visualize_layout_from_components
+from src.app.layout.device_classifier import DeviceClassifier
 
 @tool
 def generate_io_ring_schematic(config_file_path: str, output_file_path: Optional[str] = None) -> str:
@@ -16,11 +17,17 @@ def generate_io_ring_schematic(config_file_path: str, output_file_path: Optional
     Generate IO ring schematic SKILL code from intent graph file
     
     Args:
-        config_file_path: Path to intent graph file (can be relative or absolute path)
-        output_file_path: Complete path for output file (optional, defaults to output directory based on config filename)
+        config_file_path: Path to intent graph file (REQUIRED - use absolute path for better file management)
+        output_file_path: Complete path for output file (STRONGLY RECOMMENDED - specify explicit path for better file organization. If not provided, defaults to output directory based on config filename)
         
     Returns:
         String description of generation result, including file path and statistics
+        
+    Note:
+        For better file management, it is STRONGLY RECOMMENDED to:
+        1. Use absolute paths for both input and output files
+        2. Explicitly specify output_file_path to organize files in timestamped directories
+        3. Keep related files (intent graph, schematic, layout) in the same directory
     """
     try:
         # Check if intent graph file exists
@@ -120,11 +127,17 @@ def generate_io_ring_layout(config_file_path: str, output_file_path: Optional[st
     Generate IO ring layout SKILL code from intent graph file
     
     Args:
-        config_file_path: Path to intent graph file (can be relative or absolute path)
-        output_file_path: Complete path for output file (optional, defaults to output directory based on config filename)
+        config_file_path: Path to intent graph file (REQUIRED - use absolute path for better file management)
+        output_file_path: Complete path for output file (STRONGLY RECOMMENDED - specify explicit path for better file organization. If not provided, defaults to output directory based on config filename)
         
     Returns:
         String description of generation result, including file path and statistics
+        
+    Note:
+        For better file management, it is STRONGLY RECOMMENDED to:
+        1. Use absolute paths for both input and output files
+        2. Explicitly specify output_file_path to organize files in timestamped directories
+        3. Keep related files (intent graph, schematic, layout) in the same directory
     """
     try:
         # Check if intent graph file exists
@@ -293,6 +306,136 @@ def visualize_io_ring_layout(il_file_path: str, output_file_path: Optional[str] 
             
     except Exception as e:
         return f"❌ Error occurred while visualizing layout: {e}"
+
+@tool
+def visualize_io_ring_from_json(config_file_path: str, output_file_path: Optional[str] = None) -> str:
+    """
+    Generate visual diagram directly from JSON intent graph file (without generating SKILL file)
+    
+    This tool creates a visual representation of the IO ring layout directly from the JSON intent graph,
+    without requiring an intermediate SKILL file. It's equivalent to generating layout and then visualizing,
+    but more efficient when you only need the visualization.
+    
+    Args:
+        config_file_path: Path to JSON intent graph file (can be relative or absolute path)
+        output_file_path: Optional path for output image (defaults to same directory as config with _visualization.png suffix)
+        
+    Returns:
+        String description of visualization result, including file path
+    """
+    try:
+        # Check if intent graph file exists
+        config_path = Path(config_file_path)
+        if not config_path.exists():
+            return f"❌ Error: Intent graph file {config_file_path} does not exist"
+        
+        # Check file extension
+        if config_path.suffix.lower() != '.json':
+            return f"❌ Error: File {config_path} is not a valid JSON file"
+        
+        # Load configuration
+        try:
+            with open(config_path, 'r', encoding='utf-8') as f:
+                config = json.load(f)
+        except json.JSONDecodeError as e:
+            return f"❌ Error: JSON format error {e}"
+        except Exception as e:
+            return f"❌ Error: Failed to load intent graph file {e}"
+        
+        # Validate intent graph
+        if not validate_config(config):
+            return "❌ Error: Intent graph validation failed"
+        
+        # Get instances and ring_config
+        instances = config.get("instances", [])
+        ring_config = config.get("ring_config", {})
+        
+        # Merge top-level library_name and cell_name into ring_config if they exist
+        if "library_name" in config and "library_name" not in ring_config:
+            ring_config["library_name"] = config["library_name"]
+        if "cell_name" in config and "cell_name" not in ring_config:
+            ring_config["cell_name"] = config["cell_name"]
+        
+        # Initialize layout generator
+        generator = LayoutGenerator()
+        generator.set_config(ring_config)
+        
+        # Set defaults if not provided
+        if "pad_width" not in ring_config:
+            ring_config["pad_width"] = generator.config["pad_width"]
+        if "pad_height" not in ring_config:
+            ring_config["pad_height"] = generator.config["pad_height"]
+        if "corner_size" not in ring_config:
+            ring_config["corner_size"] = generator.config["corner_size"]
+        if "pad_spacing" not in ring_config:
+            ring_config["pad_spacing"] = generator.config["pad_spacing"]
+        if "library_name" not in ring_config:
+            ring_config["library_name"] = generator.config["library_name"]
+        if "view_name" not in ring_config:
+            ring_config["view_name"] = generator.config["view_name"]
+        
+        # Convert relative positions to absolute positions
+        if any("position" in instance and "_" in str(instance["position"]) for instance in instances):
+            instances = generator.convert_relative_to_absolute(instances, ring_config)
+        
+        # Separate components
+        outer_pads = []
+        inner_pads = []
+        corners = []
+        
+        for instance in instances:
+            if instance.get("type") == "inner_pad":
+                inner_pads.append(instance)
+            elif instance.get("type") == "pad":
+                outer_pads.append(instance)
+            elif instance.get("type") == "corner":
+                corners.append(instance)
+        
+        # Check if filler components are already present
+        all_instances = instances
+        existing_fillers = [comp for comp in all_instances if comp.get("type") == "filler" or DeviceClassifier.is_filler_device(comp.get("device", ""))]
+        existing_separators = [comp for comp in all_instances if comp.get("type") == "separator" or DeviceClassifier.is_separator_device(comp.get("device", ""))]
+        
+        if existing_fillers or existing_separators:
+            # Use existing fillers from JSON
+            validation_components = outer_pads + corners
+            all_components_with_fillers = validation_components
+            # Add existing fillers and separators
+            for comp in all_instances:
+                if comp.get("type") == "filler" or DeviceClassifier.is_filler_device(comp.get("device", "")):
+                    all_components_with_fillers.append(comp)
+                elif comp.get("type") == "separator" or DeviceClassifier.is_separator_device(comp.get("device", "")):
+                    all_components_with_fillers.append(comp)
+        else:
+            # Auto-generate fillers
+            validation_components = outer_pads + corners
+            all_components_with_fillers = generator.auto_filler_generator.auto_insert_fillers_with_inner_pads(validation_components, inner_pads)
+        
+        # Add inner pads to components list
+        all_components_with_fillers.extend(inner_pads)
+        
+        # Process output file path
+        if output_file_path is None:
+            output_path = config_path.parent / f"{config_path.stem}_visualization.png"
+        else:
+            output_path = Path(output_file_path)
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            if output_path.suffix.lower() != '.png':
+                output_path = output_path.with_suffix('.png')
+        
+        # Generate visualization directly from components
+        try:
+            result_path = visualize_layout_from_components(all_components_with_fillers, str(output_path))
+            return f"✅ Visualization generated successfully from JSON!\n📁 Output file: {result_path}\n\n" \
+                   f"The visualization shows the IO ring layout with:\n" \
+                   f"  - Colored rectangles representing different device types\n" \
+                   f"  - Device names labeled in the center of each rectangle\n" \
+                   f"  - Rectangles arranged in a ring formation"
+        except Exception as e:
+            return f"❌ Failed to generate visualization: {e}"
+            
+    except Exception as e:
+        return f"❌ Error occurred while visualizing layout from JSON: {e}"
 
 @tool
 def validate_intent_graph(config_file_path: str) -> str:

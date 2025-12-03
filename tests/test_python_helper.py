@@ -36,6 +36,8 @@ return content
         return_type="str"
     )
     
+    assert isinstance(result, str), "create_python_helper should return a string"
+    assert "read_il_file_content" in result, "Result should mention the tool name"
     print(result)
 
 
@@ -61,6 +63,8 @@ return '\\n'.join(comment.strip() for comment in comments)
         return_type="str"
     )
     
+    assert isinstance(result, str), "create_python_helper should return a string"
+    assert "parse_il_comments" in result, "Result should mention the tool name"
     print(result)
 
 
@@ -71,6 +75,7 @@ def test_list_helpers():
     print("="*80)
     
     result = list_python_helpers()
+    assert isinstance(result, str), "list_python_helpers should return a string"
     print(result)
 
 
@@ -81,6 +86,7 @@ def test_view_helper_code():
     print("="*80)
     
     result = view_python_helper_code("read_il_file_content")
+    assert isinstance(result, str), "view_python_helper_code should return a string"
     print(result)
 
 
@@ -92,6 +98,7 @@ def test_cleanup():
     
     for tool_name in ["read_il_file_content", "parse_il_comments"]:
         result = delete_python_helper(tool_name)
+        assert isinstance(result, str), "delete_python_helper should return a string"
         print(f"  {result}")
 
 

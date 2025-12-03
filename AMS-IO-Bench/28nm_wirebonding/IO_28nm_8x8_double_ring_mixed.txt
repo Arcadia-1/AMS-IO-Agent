@@ -9,7 +9,12 @@ Task: Generate IO ring schematic and layout design for Cadence Virtuoso.
   ======================================================================
   SIGNAL CONFIGURATION
   ======================================================================
-  Signal names: VINP VINN VIP VIM VCM VREF AVDD AVSS D0 D1 D2 D3 D4 D5 D6 D7 D8 D9 D10 D11 D12 D13 D14 D15 D16 D17 D18 D19 VIOL GIOL VIOH GIOH. Additionally, please insert an inner ring pad VREF_CORE between VCM and VREF, insert an inner ring pad D24 between D22 and D23, insert an inner ring pad VAMP_CORE between VINP and VINN
+  Signal names: VINP VINN VIP VIM VCM VREF AVDD AVSS D0 D1 D2 D3 D4 D5 D6 D7 D8 D9 D10 D11 D12 D13 D14 D15 D16 D17 D18 D19 VIOL GIOL VIOH GIOH
+
+  Additionally, please insert inner ring pads:
+  - insert an inner ring pad VREF_CORE between VCM and VREF
+  - insert an inner ring pad D24 between D22 and D23
+  - insert an inner ring pad VAMP_CORE between VINP and VINN
 
 
 

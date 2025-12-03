@@ -26,11 +26,8 @@ Examples:
     python test_lvs_runner_tool.py --help
 """
 
-import unittest
-from unittest.mock import patch, MagicMock
 from pathlib import Path
 import sys
-import os
 import argparse
 
 # Add project root directory to Python path
@@ -62,6 +59,20 @@ def show_design_info(quiet=False, lib=None, cell=None, view="layout"):
         print(f"View: {view2}")
     return True
 
+def test_show_design_info_with_params():
+    """Test show_design_info with provided parameters"""
+    result = show_design_info(quiet=True, lib="TestLib", cell="TestCell", view="layout")
+    assert result is True, "show_design_info should return True when lib and cell are provided"
+
+def test_show_design_info_without_params():
+    """Test show_design_info without parameters (requires Virtuoso)"""
+    import pytest
+    try:
+        result = show_design_info(quiet=True)
+        assert isinstance(result, bool), "show_design_info should return a boolean"
+    except Exception as e:
+        pytest.skip(f"Virtuoso not available: {e}")
+
 def run_lvs_check(quiet=False, lib=None, cell=None, view="layout", tech_node="T28"):
     """Run LVS check"""
     if not quiet:
@@ -78,6 +89,15 @@ def run_lvs_check(quiet=False, lib=None, cell=None, view="layout", tech_node="T2
     if "❌" in result or "Remote csh execution failed" in result or "Error" in result:
         return False
     return True
+
+def test_run_lvs_check_with_params():
+    """Test run_lvs_check with provided parameters"""
+    import pytest
+    try:
+        result = run_lvs_check(quiet=True, lib="TestLib", cell="TestCell", view="layout", tech_node="T28")
+        assert isinstance(result, bool), "run_lvs_check should return a boolean"
+    except Exception as e:
+        pytest.skip(f"LVS test requires Virtuoso: {e}")
 
 def main():
     """Main function, handle command line arguments and execute corresponding operations"""

@@ -102,6 +102,11 @@ def list_all_files(quiet=False):
     
     return True
 
+def test_list_all_files():
+    """Test list_all_files function"""
+    result = list_all_files(quiet=True)
+    assert isinstance(result, bool), "list_all_files should return a boolean"
+
 def run_latest_file(quiet=False, lib=None, cell=None, view="layout"):
     """Run the latest IL file"""
     if not quiet:
@@ -116,6 +121,7 @@ def run_latest_file(quiet=False, lib=None, cell=None, view="layout"):
                 result = run_il_file(str(latest_file), lib=lib, cell=cell, view=view)
             else:
                 result = run_il_file(str(latest_file))
+            assert isinstance(result, str), "run_il_file should return a string"
             print(f"   🚀 {result}")
             return True
         else:
@@ -125,6 +131,15 @@ def run_latest_file(quiet=False, lib=None, cell=None, view="layout"):
     except Exception as e:
         print(f"   ❌  Error occurred while running latest IL file: {e}")
         return False
+
+def test_run_latest_file():
+    """Test run_latest_file function"""
+    import pytest
+    try:
+        result = run_latest_file(quiet=True)
+        assert isinstance(result, bool), "run_latest_file should return a boolean"
+    except Exception as e:
+        pytest.skip(f"run_latest_file requires IL files and Virtuoso: {e}")
 
 def run_latest_file_with_screenshot(quiet=False, lib=None, cell=None, view="layout"):
     """Run the latest IL file and save screenshot"""
@@ -256,6 +271,15 @@ def clear_figures_in_window(quiet=False):
     except Exception as e:
         print(f"   ❌  Error occurred while clearing components: {e}")
         return False
+
+def test_clear_figures_in_window():
+    """Test clear_figures_in_window function"""
+    import pytest
+    try:
+        result = clear_figures_in_window(quiet=True)
+        assert isinstance(result, bool), "clear_figures_in_window should return a boolean"
+    except Exception as e:
+        pytest.skip(f"clear_figures_in_window requires Virtuoso: {e}")
 
 def screenshot_window_only(quiet=False):
     """Take a screenshot of the current Virtuoso window only, without running IL file"""

@@ -26,7 +26,9 @@ def test_visualize_layout():
     if not Path(layout_file).exists():
         print(f"❌ Layout file not found: {layout_file}")
         print("💡 Tip: Run generate_io_ring_layout first to create the layout file")
-        return
+        # Skip test if file doesn't exist (pytest will mark as skipped)
+        import pytest
+        pytest.skip(f"Layout file not found: {layout_file}")
     
     print(f"📄 Input layout file: {layout_file}")
     print(f"🖼️  Output diagram: {output_file}")
@@ -36,12 +38,14 @@ def test_visualize_layout():
         # Test direct function
         print("Test 1: Direct visualization function")
         result = visualize_layout_ring(layout_file, output_file)
+        assert isinstance(result, str), "visualize_layout_ring should return a string"
         print(result)
         print()
         
         # Test tool function
         print("Test 2: Tool function")
         result2 = visualize_layout_ring_from_skill(layout_file, output_file.replace('.png', '_tool.png'))
+        assert isinstance(result2, str), "visualize_layout_ring_from_skill should return a string"
         print(result2)
         print()
         
@@ -54,6 +58,7 @@ def test_visualize_layout():
         print(f"❌ Test failed: {e}")
         import traceback
         traceback.print_exc()
+        raise
 
 
 def test_with_generated_layout():
@@ -66,14 +71,16 @@ def test_with_generated_layout():
     generated_dir = Path("output/generated")
     if not generated_dir.exists():
         print("⚠️  No generated directory found")
-        return
+        import pytest
+        pytest.skip("No generated directory found")
     
     # Find latest generated layout file
     layout_files = list(generated_dir.rglob("io_ring_layout.il"))
     if not layout_files:
         print("⚠️  No generated layout files found")
         print("💡 Tip: Run generate_io_ring_layout to create layout files")
-        return
+        import pytest
+        pytest.skip("No generated layout files found")
     
     # Sort by modification time
     layout_files.sort(key=lambda p: p.stat().st_mtime, reverse=True)
@@ -87,12 +94,14 @@ def test_with_generated_layout():
     
     try:
         result = visualize_layout_ring(str(latest_file), str(output_file))
+        assert isinstance(result, str), "visualize_layout_ring should return a string"
         print(result)
         print("✅ Generated layout visualization completed!")
     except Exception as e:
         print(f"❌ Test failed: {e}")
         import traceback
         traceback.print_exc()
+        raise
 
 
 if __name__ == "__main__":
