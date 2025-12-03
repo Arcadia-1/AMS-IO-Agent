@@ -177,7 +177,7 @@ def extract_scores_from_results(results):
             import re
             text = result['result']
             # Find numbers between 1-10
-            score_matches = re.findall(r'(\d+(?:\.\d+)?)\s*(?:分|points?|out of 10|/10)', text)
+            score_matches = re.findall(r'(\d+(?:\.\d+)?)\s*(?:points?|out of 10|/10)', text)
             if score_matches:
                 try:
                     score = float(score_matches[0])

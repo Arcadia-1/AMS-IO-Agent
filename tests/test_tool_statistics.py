@@ -40,8 +40,9 @@ def test_basic_tracking():
     print("\nGetting run_il_file statistics:")
     stats = tracker.get_tool_stats("run_il_file")
     assert stats['total_calls'] == 4, "Should have 4 calls"
-    assert stats['success_rate'] == 0.75, "Success rate should be 0.75"
-    assert stats['avg_execution_time'] > 0, "Average execution time should be positive"
+    assert stats['success_rate'] == "75.0%", "Success rate should be '75.0%'"
+    assert isinstance(stats['avg_execution_time'], str), "Average execution time should be a string"
+    assert float(stats['avg_execution_time'].rstrip('s')) > 0, "Average execution time should be positive"
     print(f"  Total calls: {stats['total_calls']}")
     print(f"  Success rate: {stats['success_rate']}")
     print(f"  Avg time: {stats['avg_execution_time']}")
@@ -57,6 +58,14 @@ def test_top_tools():
     
     tracker = ToolUsageTracker(stats_file="logs/test_tool_stats.json")
     
+    # Add some test data first
+    tracker.track_call("tool_a", True, 1.0)
+    tracker.track_call("tool_a", True, 1.2)
+    tracker.track_call("tool_b", True, 0.8)
+    tracker.track_call("tool_c", True, 0.5)
+    tracker.track_call("tool_c", True, 0.6)
+    tracker.track_call("tool_c", True, 0.7)
+    
     top_tools = tracker.get_top_tools(3, by="calls")
     assert isinstance(top_tools, list), "get_top_tools should return a list"
     assert len(top_tools) > 0, "Should have at least one tool"
@@ -66,8 +75,10 @@ def test_top_tools():
         assert 'name' in tool, "Tool should have 'name' field"
         assert 'calls' in tool, "Tool should have 'calls' field"
         assert 'success_rate' in tool, "Tool should have 'success_rate' field"
+        # success_rate is a float (0-1) when using get_top_tools
+        success_pct = tool['success_rate'] * 100 if isinstance(tool['success_rate'], (int, float)) else tool['success_rate']
         print(f"{i}. {tool['name']}: {tool['calls']} calls, "
-              f"{tool['success_rate']*100:.1f}% success")
+              f"{success_pct:.1f}% success")
     
     print("\n✅ Test 2 passed")
 

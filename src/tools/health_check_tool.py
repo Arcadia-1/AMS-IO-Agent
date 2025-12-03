@@ -108,7 +108,7 @@ def run_health_check() -> str:
     if env_path.exists():
         size = env_path.stat().st_size
         file_details.append(f"  ✅ {'.env':<35} ({size} bytes)")
-        else:
+    else:
         issues.append("File '.env' missing")
         file_details.append(f"  ❌ {'.env':<35} [NOT FOUND]")
     

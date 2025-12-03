@@ -692,7 +692,7 @@ def visualize_layout(il_file_path: str, output_path: Optional[str] = None) -> st
         ax.add_patch(rect)
         
         # Add text label in center
-        # Format: "信号名:设备类型" for IO devices, with full device type including suffixes
+        # Format: "signal_name:device_type" for IO devices, with full device type including suffixes
         if device_category == 'io' or device_category == 'inner_pad':
             # Extract signal name from instance name
             signal_name = inst_name

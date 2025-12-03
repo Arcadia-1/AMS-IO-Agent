@@ -129,6 +129,6 @@ if __name__ == "__main__":
     #     result = RBExc(
     #         'csh("/home/lixintian/RAMIC_LXT/AMS-IO-Agent/scripts/run_pex.csh test_PEX LLM_Layout_Design")',
     #     )
-    #     print(f"命令执行结果: {result}")
+    #     print(f"Command execution result: {result}")
     # except Exception as e:
-    #     print(f"命令执行失败: {str(e)}")
+    #     print(f"Command execution failed: {str(e)}")

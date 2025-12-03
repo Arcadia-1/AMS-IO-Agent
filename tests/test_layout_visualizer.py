@@ -10,8 +10,8 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.app.schematic.layout_visualizer import visualize_layout_ring
-from src.tools.io_ring_generator_tool import visualize_layout_ring_from_skill
+from src.app.layout.layout_visualizer import visualize_layout
+from src.tools.io_ring_generator_tool import visualize_io_ring_layout
 
 
 def test_visualize_layout():
@@ -37,15 +37,15 @@ def test_visualize_layout():
     try:
         # Test direct function
         print("Test 1: Direct visualization function")
-        result = visualize_layout_ring(layout_file, output_file)
-        assert isinstance(result, str), "visualize_layout_ring should return a string"
+        result = visualize_layout(layout_file, output_file)
+        assert isinstance(result, str), "visualize_layout should return a string"
         print(result)
         print()
         
         # Test tool function
         print("Test 2: Tool function")
-        result2 = visualize_layout_ring_from_skill(layout_file, output_file.replace('.png', '_tool.png'))
-        assert isinstance(result2, str), "visualize_layout_ring_from_skill should return a string"
+        result2 = visualize_io_ring_layout(layout_file, output_file.replace('.png', '_tool.png'))
+        assert isinstance(result2, str), "visualize_io_ring_layout should return a string"
         print(result2)
         print()
         
@@ -93,8 +93,8 @@ def test_with_generated_layout():
     print()
     
     try:
-        result = visualize_layout_ring(str(latest_file), str(output_file))
-        assert isinstance(result, str), "visualize_layout_ring should return a string"
+        result = visualize_layout(str(latest_file), str(output_file))
+        assert isinstance(result, str), "visualize_layout should return a string"
         print(result)
         print("✅ Generated layout visualization completed!")
     except Exception as e:

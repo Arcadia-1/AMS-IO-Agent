@@ -61,6 +61,11 @@ Present concise plan summary to user.
 - Save SKILL files to timestamp directory
 
 ### Step 4: Execute & Capture
+- **CRITICAL - Check Virtuoso Connection Before Execution**:
+  - **MUST use `check_virtuoso_connection` tool** to verify Virtuoso connection is available before executing any SKILL scripts
+  - If connection check fails, do NOT proceed with SKILL execution
+  - Print connection status to user
+  - Only proceed to SKILL execution if connection check passes
 - Use `run_il_with_screenshot` to execute SKILL scripts
 - Save screenshots to timestamp directory: `schematic_screenshot.png`, `layout_screenshot.png`
 
@@ -540,6 +545,7 @@ Present concise plan summary to user.
 - [ ] Step 1: Intent graph generated and saved to timestamp directory
 - [ ] Step 2: Validation passed using `validate_intent_graph` tool
 - [ ] Step 3: SKILL scripts generated and saved
+- [ ] Step 4: **Virtuoso connection checked using `check_virtuoso_connection` tool before SKILL execution**
 - [ ] Step 4: Scripts executed, screenshots saved
 - [ ] Step 5: DRC check passed, results printed
 - [ ] Step 6: LVS check passed, results printed

@@ -29,7 +29,7 @@ cd "$SCRIPT_ABS/.."
 set PROJECT_ROOT = "`pwd`"
 cd $CURPWD
 
-# 主函数
+# Main function
 main:
     cd "$PROJECT_ROOT"
     
@@ -61,7 +61,7 @@ main:
     echo "" >> $OUTPUT_FILE
     echo "; Setup complete! Ensure USE_RAMIC_BRIDGE=true in .env" >> $OUTPUT_FILE
     
-    # 更新 .env 文件
+    # Update .env file
     if (-f ".env") then
         grep -q "USE_RAMIC_BRIDGE" .env
         if ($status == 0) then

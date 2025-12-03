@@ -19,3 +19,6 @@ openpyxl
 
 # Visualization
 matplotlib
+
+# Testing
+pytest

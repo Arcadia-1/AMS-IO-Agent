@@ -84,7 +84,7 @@ if (! -f "$cdsLibPath") then
     exit 1
 endif
 
-# 定义临时规则文件名
+# Define temporary rule file name
 set tmpRuleFile = "_calibre.rcx_tmp_${topCell}_"
 
 # Set environment variables
@@ -107,7 +107,7 @@ if (! -r "$cdsLibPath") then
     exit 1
 endif
 
-# 生成临时规则文件，替换变量
+# Generate temporary rule file, replace variables
 sed -e "s|@LAYOUT_PATH@|${strmFile}|g" \
     -e "s|@LAYOUT_PRIMARY@|${topCell}|g" \
     -e "s|@PEX_NETLIST@|${topCell}.pex.netlist|g" \
@@ -115,13 +115,13 @@ sed -e "s|@LAYOUT_PATH@|${strmFile}|g" \
     -e "s|@LVS_REPORT@|${topCell}.lvs.report|g" \
     $calibreRuleFile > $runDir/$tmpRuleFile
 
-# 检查临时规则文件是否生成成功
+# Check if temporary rule file was generated successfully
 if (! -f $runDir/$tmpRuleFile) then
     echo "Error: Failed to create temporary rule file"
     exit 1
 endif
 
-# 后续calibre命令全部用$runDir/$tmpRuleFile
+# All subsequent calibre commands use $runDir/$tmpRuleFile
 
 # Run XStream Out to generate .db file
 strmout -library $library \
