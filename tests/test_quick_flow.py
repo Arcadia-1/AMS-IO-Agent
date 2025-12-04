@@ -52,6 +52,18 @@ def get_all_code_files(output_dir, pattern=None):
     all_files.sort(key=lambda x: x[1])
     return all_files
 
+def test_get_all_code_files():
+    """Test get_all_code_files function"""
+    project_root = Path(__file__).parent.parent
+    output_dir = project_root / "output"
+    output_dir.mkdir(exist_ok=True)
+    
+    files = get_all_code_files(output_dir)
+    assert isinstance(files, list), "get_all_code_files should return a list"
+    # Files should be sorted by modification time
+    if len(files) > 1:
+        assert files[0][1] <= files[-1][1], "Files should be sorted by modification time"
+
 def get_latest_code_file(output_dir, pattern=None):
     """Get the latest generated code file"""
     all_files = get_all_code_files(output_dir, pattern)
@@ -101,6 +113,16 @@ def extract_skill_files(output_text, output_dir=None):
                     seen.add(str(match_path))
                     skill_files.append(str(match_path))
     return skill_files
+
+def test_extract_skill_files():
+    """Test extract_skill_files function"""
+    test_output = "Skill script generated: output/test.il\nGenerated skill file: output/test2.il"
+    project_root = Path(__file__).parent.parent
+    output_dir = project_root / "output"
+    
+    skill_files = extract_skill_files(test_output, output_dir)
+    assert isinstance(skill_files, list), "extract_skill_files should return a list"
+    assert len(skill_files) > 0, "Should extract at least one skill file from test output"
 
 def execute_python_code(code_file, project_root):
     """Execute Python code file"""

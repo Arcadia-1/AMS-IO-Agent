@@ -77,19 +77,19 @@ class SimpleTaskLogger:
     
     def end_task(self, status: str = "success", error: Optional[str] = None):
         """
-        结束任务
+        End task
         
         Args:
-            status: 任务状态 (success, failed, interrupted)
-            error: 错误信息（如果失败）
+            status: Task status (success, failed, interrupted)
+            error: Error message (if failed)
         """
         if not self.current_task:
             return
         
-        # 计算时长
+        # Calculate duration
         duration = time.time() - self.task_start_time if self.task_start_time else 0
         
-        # 更新任务信息
+        # Update task information
         self.current_task["status"] = status
         self.current_task["duration"] = round(duration, 2)
         self.current_task["end_time"] = datetime.now().isoformat()
@@ -198,27 +198,27 @@ if __name__ == "__main__":
     logger = SimpleTaskLogger(log_file="output/logs/test_task_history.json")
     
     # Simulate task 1
-    logger.start_task("设计一个28nm电容")
+    logger.start_task("Design a 28nm capacitor")
     logger.log_tool_usage("scan_knowledge_base")
     logger.log_tool_usage("load_domain_knowledge")
     logger.log_tool_usage("create_skill_tool")
     time.sleep(0.5)
     logger.end_task("success")
     
-    # 模拟任务 2（失败）
-    logger.start_task("运行DRC检查")
+    # Simulate task 2 (failed)
+    logger.start_task("Run DRC check")
     logger.log_tool_usage("run_drc")
     time.sleep(0.3)
     logger.end_task("failed", "DRC rule file not found")
     
-    # 模拟任务 3
-    logger.start_task("生成IO ring")
+    # Simulate task 3
+    logger.start_task("Generate IO ring")
     logger.log_tool_usage("scan_knowledge_base")
     logger.log_tool_usage("generate_io_ring_schematic")
     time.sleep(0.4)
     logger.end_task("success")
     
-    # 查看统计
+    # View statistics
     print("=" * 60)
     print("Task Statistics:")
     print("=" * 60)

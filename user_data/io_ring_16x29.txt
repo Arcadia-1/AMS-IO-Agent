@@ -1,19 +1,15 @@
-
-IO_28nm_8x8_double_ring_digital: |
+IO_28nm_16x29: |
 Task: Generate IO ring schematic and layout design for Cadence Virtuoso.
 
   Design requirements:
-  8 pads per side. Double ring layout. Order: counterclockwise through left side, bottom side, right side, top side.
+  16 pads on left and right sides, 29 pads on top and bottom sides. Single ring layout. Order: counterclockwise through left side, bottom side, right side, top side.
 
 
   ======================================================================
   SIGNAL CONFIGURATION
   ======================================================================
-  Signal names: D0 D1 D2 D3 D4 D5 D6 D7 D8 D9 D10 D11 D12 D13 D14 D15 D16 D17 D18 D19 D20 D21 D22 D23 D24 D25 D26 D27 VIOL GIOL VIOH GIOH
+  Signal names: VDDCAL VSSCAL CVDD CLKP CLKN CVSS AVSS2 AVSS2 AVDDH2 AVDDH2 IBOTA2 IBF VREFN2 VREFP2 VREFPF2 VREFNF2 CVSS CVDD IBOTA1 AVDDH1 AVDDH1 AVSS1 AVSS1 VREFN1 VREFP1 VREFNF1 VCM VINN VINN VINP VINP VCM VREFPF1 VREFP1 VREFN1 AVSS1 AVSS1 AVDDH1 AVDDH1 GIOL DVSS DVDD VSSFIFO VDDFIFO VSSSPI VDDSPI FVSS FVDDH FVDD VREFNF3 VREFPF3 VREFP3 VREFN3 AVDDH3 AVDDH3 AVSS3 AVSS3 IBOTA3 AVDDVCO IBV2IA IBV2I AVSSVCO VDDBUF DVSS DVDD VDDFIFO VSSFIFO GIOL VIOL VIOH GIOH SCKI SEL<0> SEL<1> SEL<2> TRIG SDO CLKO D<0> D<1> D<2> D<3> D<4> D<5> FLAG RST SDI FVDD FVDDH FVSS.
 
-  Additionally, please insert inner ring pads:
-  - insert an inner ring pad D28 between D26 and D27
-  - insert an inner ring pad D29 between D27 and VIOL
 
 
 
@@ -30,5 +26,5 @@ Task: Generate IO ring schematic and layout design for Cadence Virtuoso.
   Configuration:
   - Technology: 28nm process node
   - Library: LLM_Layout_Design
-  - Cell name: IO_RING_8x8_double_ring_digital
+  - Cell name: IO_RING_16x29
   - View: schematic and layout

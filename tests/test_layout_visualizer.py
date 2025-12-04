@@ -10,8 +10,8 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.app.schematic.layout_visualizer import visualize_layout_ring
-from src.tools.io_ring_generator_tool import visualize_layout_ring_from_skill
+from src.app.layout.layout_visualizer import visualize_layout
+from src.tools.io_ring_generator_tool import visualize_io_ring_layout
 
 
 def test_visualize_layout():
@@ -26,7 +26,9 @@ def test_visualize_layout():
     if not Path(layout_file).exists():
         print(f"❌ Layout file not found: {layout_file}")
         print("💡 Tip: Run generate_io_ring_layout first to create the layout file")
-        return
+        # Skip test if file doesn't exist (pytest will mark as skipped)
+        import pytest
+        pytest.skip(f"Layout file not found: {layout_file}")
     
     print(f"📄 Input layout file: {layout_file}")
     print(f"🖼️  Output diagram: {output_file}")
@@ -35,13 +37,15 @@ def test_visualize_layout():
     try:
         # Test direct function
         print("Test 1: Direct visualization function")
-        result = visualize_layout_ring(layout_file, output_file)
+        result = visualize_layout(layout_file, output_file)
+        assert isinstance(result, str), "visualize_layout should return a string"
         print(result)
         print()
         
         # Test tool function
         print("Test 2: Tool function")
-        result2 = visualize_layout_ring_from_skill(layout_file, output_file.replace('.png', '_tool.png'))
+        result2 = visualize_io_ring_layout(layout_file, output_file.replace('.png', '_tool.png'))
+        assert isinstance(result2, str), "visualize_io_ring_layout should return a string"
         print(result2)
         print()
         
@@ -54,6 +58,7 @@ def test_visualize_layout():
         print(f"❌ Test failed: {e}")
         import traceback
         traceback.print_exc()
+        raise
 
 
 def test_with_generated_layout():
@@ -66,14 +71,16 @@ def test_with_generated_layout():
     generated_dir = Path("output/generated")
     if not generated_dir.exists():
         print("⚠️  No generated directory found")
-        return
+        import pytest
+        pytest.skip("No generated directory found")
     
     # Find latest generated layout file
     layout_files = list(generated_dir.rglob("io_ring_layout.il"))
     if not layout_files:
         print("⚠️  No generated layout files found")
         print("💡 Tip: Run generate_io_ring_layout to create layout files")
-        return
+        import pytest
+        pytest.skip("No generated layout files found")
     
     # Sort by modification time
     layout_files.sort(key=lambda p: p.stat().st_mtime, reverse=True)
@@ -86,13 +93,15 @@ def test_with_generated_layout():
     print()
     
     try:
-        result = visualize_layout_ring(str(latest_file), str(output_file))
+        result = visualize_layout(str(latest_file), str(output_file))
+        assert isinstance(result, str), "visualize_layout should return a string"
         print(result)
         print("✅ Generated layout visualization completed!")
     except Exception as e:
         print(f"❌ Test failed: {e}")
         import traceback
         traceback.print_exc()
+        raise
 
 
 if __name__ == "__main__":

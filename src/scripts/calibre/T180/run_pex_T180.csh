@@ -5,7 +5,7 @@
 #   ./run_pex_180.csh LLM_Layout_Design_180 test_PEX_180
 #   ./run_pex_180.csh LLM_Layout_Design_180 test_PEX_180 layout
 
-# 初始化环境
+# Initialize environment
 source /home/cshrc/.cshrc.cadence.IC618SP201
 source /home/cshrc/.cshrc.mentor
 
@@ -42,7 +42,7 @@ set summaryFile = "PIPO.SUM.${topCell}"
 set strmFile = "${topCell}.calibre.db"
 set calibreRuleFile = "$PROJECT_ROOT/src/scripts/calibre/T180/_calibre_T180.rcx_"
 
-# 定义临时规则文件名
+# Define temporary rule file name
 set tmpRuleFile = "_calibre_180.rcx_tmp_"
 
 # Set environment variables
@@ -95,7 +95,7 @@ if (! -r "$cdsLibPath") then
 endif
 echo "Using cds.lib from: $cdsLibPath"
 
-# 生成临时规则文件，替换变量
+# Generate temporary rule file, replace variables
 sed -e "s|@LAYOUT_PATH@|${strmFile}|g" \
     -e "s|@LAYOUT_PRIMARY@|${topCell}|g" \
     -e "s|@PEX_NETLIST@|${topCell}.pex.netlist|g" \
@@ -103,13 +103,13 @@ sed -e "s|@LAYOUT_PATH@|${strmFile}|g" \
     -e "s|@LVS_REPORT@|${topCell}.lvs.report|g" \
     $calibreRuleFile > $runDir/$tmpRuleFile
 
-# 检查临时规则文件是否生成成功
+# Check if temporary rule file was generated successfully
 if (! -f $runDir/$tmpRuleFile) then
     echo "Error: Failed to create temporary rule file"
     exit 1
 endif
 
-# 后续calibre命令全部用$runDir/$tmpRuleFile
+# All subsequent calibre commands use $runDir/$tmpRuleFile
 
 # Run XStream Out to generate .db file
 strmout -library $library \

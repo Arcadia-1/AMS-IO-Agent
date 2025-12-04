@@ -38,7 +38,7 @@ def run_health_check() -> str:
     project_root = Path(__file__).parent.parent.parent
     
     # 1. Check if critical tools are registered
-    from ..utils.tool_loader import TOOL_REGISTRY
+    from src.app.utils.tool_loader import TOOL_REGISTRY
     
     critical_tools = [
         "run_il_file",
@@ -61,7 +61,7 @@ def run_health_check() -> str:
     
     # 2. Check environment variables
     required_env = ["USE_RAMIC_BRIDGE"]
-    optional_env = ["DEEPSEEK_API_KEY", "WANDOU_API_KEY", "RB_HOST", "RB_PORT"]
+    optional_env = ["DEEPSEEK_API_KEY", "RB_HOST", "RB_PORT"]
     
     for var in required_env:
         value = os.getenv(var)
@@ -85,40 +85,52 @@ def run_health_check() -> str:
             env_details.append(f"  ⚠️  {var:<35} [NOT SET - Optional]")
     
     # 3. Check critical configuration files
-    critical_files = [
-        "knowledge_base/system_prompt.md",
-        "config/tools_config.yaml",
-        ".env"
-    ]
+    # Check system_prompt.md in the actual location
+    system_prompt_path = project_root / "Knowledge_Base" / "01_CORE" / "KB_Agent" / "system_prompt.md"
+    if system_prompt_path.exists():
+        size = system_prompt_path.stat().st_size
+        file_details.append(f"  ✅ {'Knowledge_Base/01_CORE/KB_Agent/system_prompt.md':<35} ({size} bytes)")
+    else:
+        issues.append("File 'Knowledge_Base/01_CORE/KB_Agent/system_prompt.md' missing")
+        file_details.append(f"  ❌ {'Knowledge_Base/01_CORE/KB_Agent/system_prompt.md':<35} [NOT FOUND]")
     
-    for file in critical_files:
-        file_path = project_root / file
-        if file_path.exists():
-            size = file_path.stat().st_size
-            file_details.append(f"  ✅ {file:<35} ({size} bytes)")
-        else:
-            issues.append(f"File '{file}' missing")
-            file_details.append(f"  ❌ {file:<35} [NOT FOUND]")
+    # Check tools_config.yaml in the actual location
+    tools_config_path = project_root / "src" / "tools" / "tools_config.yaml"
+    if tools_config_path.exists():
+        size = tools_config_path.stat().st_size
+        file_details.append(f"  ✅ {'src/tools/tools_config.yaml':<35} ({size} bytes)")
+    else:
+        issues.append("File 'src/tools/tools_config.yaml' missing")
+        file_details.append(f"  ❌ {'src/tools/tools_config.yaml':<35} [NOT FOUND]")
+    
+    # Check .env file
+    env_path = project_root / ".env"
+    if env_path.exists():
+        size = env_path.stat().st_size
+        file_details.append(f"  ✅ {'.env':<35} ({size} bytes)")
+    else:
+        issues.append("File '.env' missing")
+        file_details.append(f"  ❌ {'.env':<35} [NOT FOUND]")
     
     # 4. Check knowledge base
-    kb_dir = project_root / "knowledge_base"
+    kb_dir = project_root / "Knowledge_Base"
     if not kb_dir.exists():
         issues.append("Knowledge base directory missing")
-        file_details.append(f"  ❌ {'knowledge_base/':<35} [NOT FOUND]")
+        file_details.append(f"  ❌ {'Knowledge_Base/':<35} [NOT FOUND]")
     else:
-        kb_files = list(kb_dir.glob("*.md"))
-        file_details.append(f"  ✅ {'knowledge_base/':<35} ({len(kb_files)} .md files)")
+        kb_files = list(kb_dir.rglob("*.md"))
+        file_details.append(f"  ✅ {'Knowledge_Base/':<35} ({len(kb_files)} .md files)")
         if len(kb_files) < 2:
             warnings.append(f"Knowledge base has only {len(kb_files)} file(s)")
     
     # 5. Check SKILL tools directory
-    skill_tools_dir = project_root / "skill_tools"
+    skill_tools_dir = project_root / "src" / "skill"
     if not skill_tools_dir.exists():
         warnings.append("SKILL tools directory missing")
-        file_details.append(f"  ⚠️  {'skill_tools/':<35} [NOT FOUND - Optional]")
+        file_details.append(f"  ⚠️  {'src/skill/':<35} [NOT FOUND - Optional]")
     else:
         skill_files = list(skill_tools_dir.glob("*.il"))
-        file_details.append(f"  ✅ {'skill_tools/':<35} ({len(skill_files)} .il files)")
+        file_details.append(f"  ✅ {'src/skill/':<35} ({len(skill_files)} .il files)")
     
     # 6. Check output directory
     output_dir = project_root / "output"

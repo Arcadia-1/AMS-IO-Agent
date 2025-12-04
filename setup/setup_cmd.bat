@@ -187,7 +187,7 @@ echo   1. Edit .env file and fill in your API keys
 echo   2. Activate virtual environment:
 echo      .venv\Scripts\activate.bat
 echo   3. Run the application:
-echo      python src/main.py
+echo      python main.py
 echo.
 echo Note: Virtuoso integration is only available on Linux.
 echo.

@@ -1,6 +1,6 @@
 #!/bin/csh -f
 
-# 初始化环境
+# Initialize environment
 source /home/cshrc/.cshrc.cadence.IC618SP201
 source /home/cshrc/.cshrc.mentor
 

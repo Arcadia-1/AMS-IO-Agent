@@ -298,7 +298,7 @@ Write-Host "  2. Activate virtual environment:" -ForegroundColor White
 Write-Host "     .\.venv\Scripts\Activate.ps1" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "  3. Run the application:" -ForegroundColor White
-Write-Host "     python src/main.py" -ForegroundColor Cyan
+Write-Host "     python main.py" -ForegroundColor Cyan
 Write-Host ""
 
 Write-Host "Note: Virtuoso integration is only available on Linux." -ForegroundColor Yellow

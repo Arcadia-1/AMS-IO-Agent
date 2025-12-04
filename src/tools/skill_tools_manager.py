@@ -11,8 +11,9 @@ from typing import List, Dict, Optional
 from smolagents import tool
 from .bridge_utils import rb_exec
 
-# SKILL tools directory
-SKILL_TOOLS_DIR = Path("skill_tools")
+# SKILL tools directory - use absolute path based on project root
+_project_root = Path(__file__).parent.parent.parent
+SKILL_TOOLS_DIR = _project_root / "src" / "skill"
 
 @tool
 def list_skill_tools() -> str:

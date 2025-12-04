@@ -17,6 +17,8 @@ def test_list_configs():
     """Test list configuration files functionality"""
     print("🔍 Testing list IO ring configuration files...")
     result = list_intent_graphs()
+    assert isinstance(result, str), "list_intent_graphs should return a string"
+    assert len(result) > 0, "list_intent_graphs should return non-empty result"
     print(result)
     print()
 
@@ -26,6 +28,7 @@ def test_validate_config():
     
     # Test simple configuration
     result = validate_intent_graph("output/example/intent_graph.json")
+    assert isinstance(result, str), "validate_intent_graph should return a string"
     print()
 
 def test_generate_schematic():
@@ -35,6 +38,7 @@ def test_generate_schematic():
     # Test 3: Specify complete output path
     print("Test 3: Specify complete output path")
     result = generate_io_ring_schematic("output/example/intent_graph.json", "output/example/io_ring_schematic.il")
+    assert isinstance(result, str), "generate_io_ring_schematic should return a string"
     print(result)
     print()
 
@@ -42,11 +46,10 @@ def test_generate_layout():
     """Test generate layout functionality"""
     print("🏗️ Testing generate IO ring layout...")
     
-
-    
     # Test 3: Specify complete output path
     print("Test 3: Specify complete output path")
     result = generate_io_ring_layout("output/example/intent_graph.json", "output/example/io_ring_layout.il")
+    assert isinstance(result, str), "generate_io_ring_layout should return a string"
     print(result)
     print()
 
