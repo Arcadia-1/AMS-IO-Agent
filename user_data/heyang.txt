@@ -1,0 +1,58 @@
+Design requirements: 12 pads on left and right sides, 26 pads on top and bottom sides. Double ring layout. Order: counterclockwise through left side, bottom side, right side, top side.
+
+====================================================================== SIGNAL CONFIGURATION
+Signal names: CVSS AVSS2 AVSS2 AVDDH2 AVDDH2 FVDD FVDDH FVSS VREFP2 VREFN2 VREFPF2 VREFNF2 AVDDH1 AVDDH1 AVSS1 AVSS1 VREFP1 VREFN1 AVDDH0 AVDDH0 AVSS0 AVSS0 VREFP0 VREFN0 VINP VINN VREFN0 VREFP0 AVSS0 AVSS0 AVDDH0 AVDDH0 VREFN1 VREFP1 AVSS1 AVSS1 AVDDH1 AVDDH1 CVSS CLKN CLKP CVDD VREFNF3 VREFPF3 VREFN3 VREFP3 AVDDH3 AVDDH3 AVSS3 AVSS3 FVSS FVDDH FVDD VDDCAL VSSCAL VSSFIFO VDDFIFO DVDD DVSS SDO CLKO FLAG SCKI SEL<0> SEL<1> SEL<2> TRIG RST SDI DVSS DVDD VDDFIFO VSSFIFO VSSSPI VDDSPI CVDD
+
+Additionally, please insert inner ring pads:
+
+insert an inner ring pad VREFPF4 between AVSS2 and AVSS2 (Left Side)
+
+insert an inner ring pad VREFNF4 between AVSS2 and AVDDH2 (Left Side)
+
+insert an inner ring pad IBOTA3 between FVSS and VREFP2 (Left Side)
+
+insert an inner ring pad IBOTA2 between VREFP2 and VREFN2 (Left Side)
+
+insert an inner ring pad IBOTA1 between VREFN2 and VREFPF2 (Left Side)
+
+insert an inner ring pad IBOTA0 between VREFPF2 and VREFNF2 (Left Side)
+
+insert an inner ring pad VREFPF1 between AVSS1 and VREFP1 (Bottom Side)
+
+insert an inner ring pad VREFNF1 between VREFP1 and VREFN1 (Bottom Side)
+
+insert an inner ring pad VCM between VREFN0 and VINP (Bottom Side)
+
+insert an inner ring pad VREFNF0 between VINN and VREFN0 (Bottom Side)
+
+insert an inner ring pad VREFPF0 between VREFN0 and VREFP0 (Bottom Side)
+
+insert an inner ring pad IBF between VREFPF3 and VREFN3 (Right Side)
+
+insert an inner ring pad D<0> between DVSS and SDO (Top Side)
+
+insert an inner ring pad D<1> between SDO and CLKO (Top Side)
+
+insert an inner ring pad D<2> between CLKO and FLAG (Top Side)
+
+insert an inner ring pad D<3> between FLAG and SCKI (Top Side)
+
+insert an inner ring pad D<4> between SCKI and SEL<0> (Top Side)
+
+insert an inner ring pad GIDL between SEL<0> and SEL<1> (Top Side)
+
+insert an inner ring pad VIDL between SEL<1> and SEL<2> (Top Side)
+
+insert an inner ring pad VIDH between SEL<2> and TRIG (Top Side)
+
+insert an inner ring pad GIOH between RST and SDI (Top Side)
+
+
+  ======================================================================
+  DESIGN CONFIGURATION
+  ======================================================================
+  Configuration:
+  - Technology: 28nm process node
+  - Library: LLM_Layout_Design
+  - Cell name: IO_RING_16x26
+  - View: schematic and layout

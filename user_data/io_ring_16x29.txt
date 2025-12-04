@@ -2,7 +2,7 @@ IO_28nm_16x29: |
 Task: Generate IO ring schematic and layout design for Cadence Virtuoso.
 
   Design requirements:
-  16 pads on left and right sides, 29 pads on top and bottom sides. Single ring layout. Order: counterclockwise through left side, bottom side, right side, top side.
+  16 pads on left and right sides, 26 pads on top and bottom sides. Single ring layout. Order: counterclockwise through left side, bottom side, right side, top side.
 
 
   ======================================================================
@@ -26,5 +26,5 @@ Task: Generate IO ring schematic and layout design for Cadence Virtuoso.
   Configuration:
   - Technology: 28nm process node
   - Library: LLM_Layout_Design
-  - Cell name: IO_RING_16x29
+  - Cell name: IO_RING_16x26
   - View: schematic and layout
