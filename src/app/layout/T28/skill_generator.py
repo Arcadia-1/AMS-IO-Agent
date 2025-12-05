@@ -257,8 +257,11 @@ class SkillGeneratorT28:
         offsets = skill_params.get("secondary_offsets", {"I": 1.725, "OEN": 5.9, "REN": 10.2, "C": 14.33})
         
         # Place vias and connect to configuration lines for digital power pads
+        # Handle both outer and inner ring digital power pads (same treatment)
+        # Only low-voltage digital power/ground pads need this treatment (PVDD1DGZ, PVSS1DGZ)
         for pad in all_digital_pads:
             device = pad["device"]
+            # Only process low-voltage digital power/ground device types
             if device in ["PVDD1DGZ_V_G", "PVDD1DGZ_H_G", "PVSS1DGZ_V_G", "PVSS1DGZ_H_G"]:
                 x, y = pad["position"]
                 orient = pad["orientation"]
@@ -327,7 +330,14 @@ class SkillGeneratorT28:
                 skill_commands.append(f'viaDefId = techFindViaDefByName(tech "{via_def_name}")')
                 skill_commands.append(f'newVia = dbCreateVia(cv viaDefId list({via_x} {via_y}) "{via_orientation}" viaParams)')
         
+        # Secondary lines and pin labels only for digital IO pads (exclude digital power/ground pads)
         for pad in digital_io_pads:
+            device = pad.get("device", "")
+            # Skip low-voltage digital power/ground pads - they should not have secondary lines or pin labels
+            # Digital power/ground pads are handled separately above with vias and configuration lines
+            if device in ["PVDD1DGZ_V_G", "PVDD1DGZ_H_G", "PVSS1DGZ_V_G", "PVSS1DGZ_H_G"]:
+                continue
+            
             x, y = pad["position"]
             orient = pad["orientation"]
             is_input = pad["io_direction"] == "input"

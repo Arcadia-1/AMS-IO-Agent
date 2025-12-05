@@ -135,7 +135,7 @@ def create_agent(model, final_instructions, show_code_execution: bool = False):
         instructions=final_instructions,
         stream_outputs=True,  # Keep streaming for Thought and Observation
         logger=logger,  # Custom logger to filter out code execution
-        additional_authorized_imports=['os', 'pathlib', 'io', 'sys', 'subprocess', 'typing', 'posixpath', 'importlib', 'glob', 'json'],
+        additional_authorized_imports=['os', 'pathlib', 'io', 'sys', 'subprocess', 'typing', 'posixpath', 'ntpath', 'importlib', 'glob', 'json'],
         executor_kwargs={"additional_functions": {"open": open, "exec": exec}},
         max_steps=100
     )

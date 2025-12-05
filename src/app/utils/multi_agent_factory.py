@@ -466,7 +466,7 @@ Always:
         stream_outputs=True,
         additional_authorized_imports=[
             'os', 'pathlib', 'io', 'sys', 'subprocess', 
-            'typing', 'posixpath', 'importlib', 'glob', 'json', 'ast'
+            'typing', 'posixpath', 'ntpath', 'importlib', 'glob', 'json', 'ast'
         ],
         executor_kwargs={
             "additional_functions": {

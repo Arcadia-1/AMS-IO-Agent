@@ -38,7 +38,7 @@ Task: Generate IO ring schematic and layout design for Cadence Virtuoso.
   ======================================================================
   Voltage domain requirements:
   - digital signals use digital domain voltage domain (VIOL/GIOL/VIOH/GIOH)
-
+  - Signals from SDO to SDI (inclusive) are digital pads. All other signals are analog pads.
   ======================================================================
   DESIGN CONFIGURATION
   ======================================================================
