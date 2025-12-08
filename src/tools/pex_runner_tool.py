@@ -64,12 +64,12 @@ def run_pex(lib: Optional[str] = None, cell: Optional[str] = None, view: str = "
         if tech_node not in ["T28", "T180"]:
             return f"❌ Error: Invalid tech_node '{tech_node}'. Must be 'T28' or 'T180'"
         
-        # Get script path based on tech_node
-        script_path = Path(f"src/scripts/calibre/{tech_node}/run_pex_{tech_node}.csh")
+        # Use unified script at top level
+        script_path = Path("src/scripts/calibre/run_pex.csh")
         
         # Check if script exists
         if not script_path.exists():
-            return f"❌ Error: PEX script file not found: {script_path} (tech_node: {tech_node})"
+            return f"❌ Error: PEX script file not found: {script_path}"
         script_path.chmod(0o755)
         # If lib/cell provided, open the specified cell first
         if lib and cell:
@@ -91,8 +91,8 @@ def run_pex(lib: Optional[str] = None, cell: Optional[str] = None, view: str = "
             microseconds = int(time.time() * 1000000) % 1000000
             process_id = os.getpid()
             pex_dir = Path(f"output/pex_{timestamp_str}_{process_id}_{microseconds}")
-            # Note: run_pex.csh expects arguments in order: <library> <topCell> [view] [runDir]
-            result = execute_csh_script(str(script_path), lib, cell, view, str(pex_dir), timeout=300)
+            # Note: run_pex.csh expects arguments in order: <library> <topCell> [view] [tech_node] [runDir]
+            result = execute_csh_script(str(script_path), lib, cell, view, tech_node, str(pex_dir), timeout=300)
             print(f"PEX result: {result}")
             netlist_file = pex_dir / f"{cell}.pex.netlist"
             log_file = pex_dir / f"PIPO.LOG.{cell}"

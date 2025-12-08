@@ -32,8 +32,23 @@ setenv MGC_HOME /home/mentor/calibre/calibre2022/aoj_cal_2022.1_36.16
 setenv incFILE_28 /home/process/tsmc28n/PDK_mmWave/iPDK_CRN28HPC+ULL_v1.8_2p2a_20190531/tsmcN28/../Calibre/lvs/source.added
 setenv incFILE_180 /home/dmanager/shared_lib/TSMC180MS/calibre_rule/lvs/source.added
 
-# Path to cds.lib used by strmout/si
-# This should be set in project .env file, but can be overridden here
+# Path to cds.lib used by strmout/si (technology node specific)
+# The scripts will check in this order:
+#   1. CDS_LIB_PATH_28 or CDS_LIB_PATH_180 (based on tech_node)
+#   2. CDS_LIB_PATH (fallback for both nodes)
+#   3. CDS_LIB_PATH_28/CDS_LIB_PATH_180 in $PROJECT_ROOT/.env file
+#   4. CDS_LIB_PATH in $PROJECT_ROOT/.env file
+#   5. Error if none found
+#
+# Technology node specific paths (recommended):
+#setenv CDS_LIB_PATH_28 /path/to/your/T28/cds.lib
+#setenv CDS_LIB_PATH_180 /path/to/your/T180/cds.lib
+#
+# Or set in project .env file:
+# CDS_LIB_PATH_28=/absolute/path/to/T28/cds.lib
+# CDS_LIB_PATH_180=/absolute/path/to/T180/cds.lib
+#
+# Fallback (if same cds.lib for both nodes):
 #setenv CDS_LIB_PATH /path/to/your/cds.lib
 
 # Calibre rule files (28nm / 180nm) - relative to calibre directory
@@ -52,21 +67,6 @@ setenv DRC_RULE_FILE_180 ${SCRIPT_DIR}/T180/_drc_rule_T180_cell_
 setenv PEX_RUN_DIR ${PROJECT_ROOT}/output/pex
 setenv DRC_RUN_DIR ${PROJECT_ROOT}/output/drc
 setenv LVS_RUN_DIR ${PROJECT_ROOT}/output/lvs
-
-# Process node (default: 180, can be overridden)
-if ( ! $?PROCESS_NODE ) then
-    setenv PROCESS_NODE 180
-endif
-
-# Library Name (can be overridden)
-if ( ! $?LIB_NAME ) then
-    setenv LIB_NAME llm_test
-endif
-
-# Cell Name (can be overridden)
-if ( ! $?CELL_NAME ) then
-    setenv CELL_NAME testv1
-endif
 
 # End of env_common.csh
 

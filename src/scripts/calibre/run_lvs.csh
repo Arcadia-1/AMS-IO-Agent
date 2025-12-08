@@ -1,14 +1,14 @@
 #!/bin/csh -f
-# Combined LVS script supporting multiple processes (28/180)
-# Usage: ./run_lvs.csh <library> <topCell> [view] [process]
+# Combined LVS script supporting multiple technology nodes (T28/T180)
+# Usage: ./run_lvs.csh <library> <topCell> [view] [tech_node]
 #   - <library>:   Cadence library name
 #   - <topCell>:   cell name to export and run LVS on
 #   - [view]:      view name for strmout (default: layout)
-#   - [process]:   process node (28 or 180, default from PROCESS_NODE env var)
+#   - [tech_node]: technology node (T28 or T180, default from TECH_NODE env var)
 # Example:
 #   ./run_lvs.csh LLM_Layout_Design test_v2
 #   ./run_lvs.csh LLM_Layout_Design test_v2 layout
-#   ./run_lvs.csh LLM_Layout_Design test_v2 layout 28
+#   ./run_lvs.csh LLM_Layout_Design test_v2 layout T28
 
 # Initialize environment
 source /home/cshrc/.cshrc.cadence.IC618SP201
@@ -32,11 +32,15 @@ endif
 
 # Check input arguments
 if ( $#argv < 2 || $#argv > 4 ) then
-    echo "Usage: $0 <library> <topCell> [view] [process]"
+    echo "Usage: $0 <library> <topCell> [view] [tech_node]"
     echo "  <library>:   Cadence library name"
     echo "  <topCell>:   cell name to export and run LVS on"
     echo "  [view]:      view name for strmout (default: layout)"
-    echo "  [process]:   process node (28 or 180, default: $PROCESS_NODE)"
+    if ( $?TECH_NODE ) then
+        echo "  [tech_node]: technology node (T28 or T180, default: $TECH_NODE)"
+    else
+        echo "  [tech_node]: technology node (T28 or T180, required if TECH_NODE not set)"
+    endif
     exit 1
 endif
 
@@ -50,15 +54,20 @@ else
     set view = "layout"
 endif
 
-# Determine process node
+# Determine technology node
 if ( $#argv >= 4 ) then
-    set process = "$argv[4]"
+    set tech_node = "$argv[4]"
 else
-    set process = "$PROCESS_NODE"
+    if ( $?TECH_NODE ) then
+        set tech_node = "$TECH_NODE"
+    else
+        echo "Error: Technology node not specified. Please provide [tech_node] argument or set TECH_NODE environment variable."
+        exit 1
+    endif
 endif
 
-# Define variables based on process
-if ( "$process" =~ 180* ) then
+# Define variables based on technology node
+if ( "$tech_node" =~ T180* || "$tech_node" =~ 180* ) then
     if ( $?PDK_LAYERMAP_180 ) then
         set layerMapFile = "$PDK_LAYERMAP_180"
     else
@@ -66,13 +75,18 @@ if ( "$process" =~ 180* ) then
         exit 1
     endif
     set lvsRuleFile = "$LVS_RULE_FILE_180"
+    if ( ! -f "$lvsRuleFile" ) then
+        echo "Error: LVS rule file not found: $lvsRuleFile"
+        echo "Please ensure the file exists or update LVS_RULE_FILE_180 in env_common.csh"
+        exit 1
+    endif
     if ( $?incFILE_180 ) then
         set incFile = "$incFILE_180"
     else
         echo "Error: incFILE_180 is not set. Please set it in env_common.csh"
         exit 1
     endif
-else if ( "$process" =~ 28* ) then
+else if ( "$tech_node" =~ T28* || "$tech_node" =~ 28* ) then
     if ( $?PDK_LAYERMAP_28 ) then
         set layerMapFile = "$PDK_LAYERMAP_28"
     else
@@ -80,6 +94,11 @@ else if ( "$process" =~ 28* ) then
         exit 1
     endif
     set lvsRuleFile = "$LVS_RULE_FILE_28"
+    if ( ! -f "$lvsRuleFile" ) then
+        echo "Error: LVS rule file not found: $lvsRuleFile"
+        echo "Please ensure the file exists or update LVS_RULE_FILE_28 in env_common.csh"
+        exit 1
+    endif
     if ( $?incFILE_28 ) then
         set incFile = "$incFILE_28"
     else
@@ -87,28 +106,64 @@ else if ( "$process" =~ 28* ) then
         exit 1
     endif
 else
-    echo "Error: Unsupported process node '$process'. Supported: 28, 180."
+    echo "Error: Unsupported technology node '$tech_node'. Supported: T28, T180."
     exit 1
 endif
 
-echo "[run_lvs] PROCESS_NODE='$process' -> using rule file: $lvsRuleFile"
+echo "[run_lvs] TECH_NODE='$tech_node' -> using rule file: $lvsRuleFile"
 
-# Check if CDS_LIB_PATH is set
-if ( $?CDS_LIB_PATH ) then
-    set cdsLibPath = "$CDS_LIB_PATH"
-else
-    # Try to read from project .env file
-    if ( -f "$PROJECT_ROOT/.env" ) then
-        set cds_from_env = `grep -E "^CDS_LIB_PATH=" "$PROJECT_ROOT/.env" | sed -e 's/^CDS_LIB_PATH=//'`
-        if ( "$cds_from_env" != "" ) then
-            set cdsLibPath = "$cds_from_env"
+# Check if CDS_LIB_PATH is set (technology node specific first, then fallback)
+if ( "$tech_node" =~ T180* || "$tech_node" =~ 180* ) then
+    # For T180
+    if ( $?CDS_LIB_PATH_180 ) then
+        set cdsLibPath = "$CDS_LIB_PATH_180"
+    else if ( $?CDS_LIB_PATH ) then
+        set cdsLibPath = "$CDS_LIB_PATH"
+    else
+        # Try to read from project .env file
+        if ( -f "$PROJECT_ROOT/.env" ) then
+            set cds_from_env = `grep -E "^CDS_LIB_PATH_180=" "$PROJECT_ROOT/.env" | sed -e 's/^CDS_LIB_PATH_180=//'`
+            if ( "$cds_from_env" != "" ) then
+                set cdsLibPath = "$cds_from_env"
+            else
+                set cds_from_env = `grep -E "^CDS_LIB_PATH=" "$PROJECT_ROOT/.env" | sed -e 's/^CDS_LIB_PATH=//'`
+                if ( "$cds_from_env" != "" ) then
+                    set cdsLibPath = "$cds_from_env"
+                else
+                    echo "Error: CDS_LIB_PATH_180 or CDS_LIB_PATH is not set. Please set it in $PROJECT_ROOT/.env or env_common.csh"
+                    exit 1
+                endif
+            endif
         else
-            echo "Error: CDS_LIB_PATH is not set. Please set it in $PROJECT_ROOT/.env or env_common.csh"
+            echo "Error: CDS_LIB_PATH_180 or CDS_LIB_PATH is not set and $PROJECT_ROOT/.env not found"
             exit 1
         endif
+    endif
+else
+    # For T28
+    if ( $?CDS_LIB_PATH_28 ) then
+        set cdsLibPath = "$CDS_LIB_PATH_28"
+    else if ( $?CDS_LIB_PATH ) then
+        set cdsLibPath = "$CDS_LIB_PATH"
     else
-        echo "Error: CDS_LIB_PATH is not set and $PROJECT_ROOT/.env not found"
-        exit 1
+        # Try to read from project .env file
+        if ( -f "$PROJECT_ROOT/.env" ) then
+            set cds_from_env = `grep -E "^CDS_LIB_PATH_28=" "$PROJECT_ROOT/.env" | sed -e 's/^CDS_LIB_PATH_28=//'`
+            if ( "$cds_from_env" != "" ) then
+                set cdsLibPath = "$cds_from_env"
+            else
+                set cds_from_env = `grep -E "^CDS_LIB_PATH=" "$PROJECT_ROOT/.env" | sed -e 's/^CDS_LIB_PATH=//'`
+                if ( "$cds_from_env" != "" ) then
+                    set cdsLibPath = "$cds_from_env"
+                else
+                    echo "Error: CDS_LIB_PATH_28 or CDS_LIB_PATH is not set. Please set it in $PROJECT_ROOT/.env or env_common.csh"
+                    exit 1
+                endif
+            endif
+        else
+            echo "Error: CDS_LIB_PATH_28 or CDS_LIB_PATH is not set and $PROJECT_ROOT/.env not found"
+            exit 1
+        endif
     endif
 endif
 
@@ -126,14 +181,14 @@ set tmpRuleFile = "_calibre.lvs_tmp"
 set netlistFile = "${topCell}.src.net"
 
 # Determine si.env template location
-if ( "$process" =~ 28* ) then
-    set siEnvTemplate = "${SCRIPT_DIR}/T28/si.env"
+if ( "$tech_node" =~ T28* || "$tech_node" =~ 28* ) then
+    set siEnvTemplate = "${SCRIPT_DIR}/T28/si_T28.env"
 else
-    # For 180nm, use T28 template if T180 doesn't have one
-    if ( -f "${SCRIPT_DIR}/T180/si.env" ) then
-        set siEnvTemplate = "${SCRIPT_DIR}/T180/si.env"
+    # For T180, use T28 template if T180 doesn't have one
+    if ( -f "${SCRIPT_DIR}/T180/si_T180.env" ) then
+        set siEnvTemplate = "${SCRIPT_DIR}/T180/si_T180.env"
     else
-        set siEnvTemplate = "${SCRIPT_DIR}/T28/si.env"
+        set siEnvTemplate = "${SCRIPT_DIR}/T28/si_T28.env"
     endif
 endif
 set siEnvFile = "si.env"
@@ -157,6 +212,10 @@ endif
 
 # Create temporary rule file with replaced variables
 echo "Creating temporary rule file: $runDir/$tmpRuleFile"
+if ( ! -f "$lvsRuleFile" ) then
+    echo "Error: LVS rule file not found: $lvsRuleFile"
+    exit 1
+endif
 sed -e "s|@LAYOUT_PATH|${strmFile}|g" \
     -e "s|@LAYOUT_PRIMARY|${topCell}|g" \
     -e "s|@NETLIST_PATH|${netlistFile}|g" \
@@ -179,6 +238,10 @@ cat "$runDir/$tmpRuleFile"
 
 # Create si.env file with replaced variables
 echo "Creating si.env file: $runDir/$siEnvFile"
+if ( ! -f "$siEnvTemplate" ) then
+    echo "Error: si.env template not found: $siEnvTemplate"
+    exit 1
+endif
 sed -e "s|test_v2|${topCell}|g" \
     -e "s|LLM_Layout_Design|${library}|g" \
     -e "s|/home/lixintian/TSMC28/TEST/lvs|${runDir}|g" \
@@ -262,7 +325,7 @@ if ($status != 0) then
     exit 1
 endif
 
-echo "Calibre LVS flow (${process}nm) completed successfully."
+echo "Calibre LVS flow (${tech_node}) completed successfully."
 
 # Launch RVE to view LVS results
 # $MGC_HOME/bin/calibre -nowait -rve -lvs ${topCell}.lvs.results

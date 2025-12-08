@@ -11,7 +11,7 @@ Professional Virtuoso IO ring generation assistant that generates intent graph J
 - **Placement sequence**: Process one side at a time, place signals and pads simultaneously
 - **Voltage domain configuration**:
   - **If user explicitly specifies**: MUST strictly follow user's specification exactly, do not modify or ask for confirmation
-  - **If user does NOT specify**: Automatically analyze signal name patterns to determine voltage domain groupings and providers, do NOT ask user
+  - **If user does NOT specify**: AI must select ONE unified voltage domain to power ALL analog pads, do NOT ask user
 - **Workflow execution**: Automatically determine workflow entry point based on user input (intent graph file vs requirements), proceed through all steps without asking user for choices
 
 ## Workflow
@@ -108,54 +108,34 @@ Present concise plan summary to user.
   - If user explicitly names a provider signal that appears multiple times in the domain, select the first occurrence in placement order as provider, others become consumers
 
 **Priority 2: Automatic Analysis (when user does NOT specify)**
-- **Use AI semantic understanding** to identify voltage domain groupings:
-  - **Understand the semantic meaning of signal names** to identify power/ground pairs, do NOT use character matching algorithms
-  - Examples of semantic pairing:
-    - AVDDH1 and AVSS1: Both contain "1", semantically belong to the same functional module (module 1)
-    - AVDDVCO and AVSSVCO: Both contain "VCO", semantically belong to VCO module
-    - VDDIB and VSSIB: Both contain "IB", semantically belong to IB module
-    - CVDD and CVSS: Both contain "C", semantically belong to C module
-    - VDDSAR and VSSSAR: Both contain "SAR", semantically belong to SAR module
-  - **Rely on AI's understanding of circuit design naming conventions** and semantic relationships between signals
-  - Consider context: signals that belong to the same functional block should be paired
-- **CRITICAL - Voltage Domain Continuity (MUST BE MAINTAINED)**: Voltage domains MUST be **contiguous and adjacent** in placement order
-  - Signals belonging to the same voltage domain must form a continuous block
-  - Cannot split voltage domain into disconnected segments (this would prevent proper power supply)
-  - **Physical separation means different voltage domains**: If signals with similar or identical names are separated by other signals, they belong to **different voltage domains**, even if they have the same name
-  - Each contiguous block of signals with matching power/ground pair names forms an **independent voltage domain** with its own provider pair
-  - Example: CVDD at left_2 (with CVSS at left_5) forms one voltage domain; CVDD at bottom_1 (with CVSS at bottom_0) forms a **different** voltage domain, even though they have the same signal names
-- **Determine voltage domain providers using semantic understanding**:
-  - **CRITICAL - One Provider Pair Per Domain**: Each voltage domain (contiguous block) can have **ONLY ONE pair of providers** (one VDD provider and one VSS provider)
-  - **CRITICAL - Even Same Name**: Even if multiple signals have the same name (e.g., multiple "AVDDH1" signals), **only ONE of them** can be selected as the provider
-  - **Use AI semantic understanding** to identify which signals are providers:
-    - Understand the role of each signal in the circuit design
-    - Providers are signals that supply power to the domain; consumers receive power from providers
-    - Typically, the first occurrence in a contiguous block is the provider, but should be confirmed by semantic understanding of the signal's role
-  - **Do NOT use simple "first occurrence" algorithm** - use semantic understanding to determine the appropriate provider based on the signal's role in the circuit
-  - For each **contiguous block** of signals with matching power/ground pair:
-    - Select ONE VDD signal as VDD provider (PVDD3AC) - typically the first in the block, but confirm semantically
-    - Select ONE VSS signal as VSS provider (PVSS3AC) - typically the first in the block, but confirm semantically
-    - All other signals in the same contiguous block are consumers (PVDD1AC/PVSS1AC)
+- **CRITICAL - Single Unified Voltage Domain**: When user does NOT specify voltage domain, AI must select **ONE unified voltage domain** to power **ALL analog pads**
+  - **Do NOT analyze multiple voltage domain groupings** - use a single unified voltage domain for all analog pads
+  - **All analog pads** (including analog IO, analog power/ground) connect to the same voltage domain provider pair
+- **Select voltage domain providers using AI semantic understanding**:
+  - **Use AI semantic understanding** to identify the most appropriate power/ground pair as the unified voltage domain provider
+  - **Selection priority** (use AI judgment to determine the most suitable):
+    1. Common analog domain pairs: AVDD/AVSS, VDDIB/VSSIB, VDDSAR/VSSSAR, etc.
+    2. First major power/ground pair found in signal list
+    3. Most frequently appearing power/ground pair
+  - **Select ONE VDD signal** as VDD provider (PVDD3AC) - use the first occurrence of the selected provider signal
+  - **Select ONE VSS signal** as VSS provider (PVSS3AC) - use the first occurrence of the selected provider signal (must be the corresponding ground signal of the selected VDD)
+  - **Examples of provider selection** (use AI semantic understanding):
+    - If VDDIB/VSSIB present → select VDDIB and VSSIB as providers
+    - If AVDD/AVSS present → select AVDD and AVSS as providers
+    - If VDDSAR/VSSSAR present → select VDDSAR and VSSSAR as providers
+    - If multiple pairs present → use AI judgment to select the most appropriate one
 - **Determine voltage domain consumers**:
-  - **All other** power/ground signals in the same **contiguous** group are consumers, including:
-    - Signals with different names
-    - **Duplicate signals with the same name as the provider** (only the first one is provider, others are consumers)
-  - Use `PVDD1AC`/`PVSS1AC` for consumers
-  - Connect TACVSS/TACVDD to the group's provider signal names (the selected provider pair)
-- **Common semantic pairing examples** (use semantic understanding, NOT character matching):
-  - VDDIB/VSSIB: Both contain "IB", semantically belong to IB module → VDDIB and VSSIB as providers
-  - VDDSAR/VSSSAR: Both contain "SAR", semantically belong to SAR module → VDDSAR and VSSSAR as providers
-  - VDD_CKB/VSS_CKB: Both contain "CKB", semantically belong to CKB module → VDD_CKB and VSS_CKB as providers
-  - AVDD/AVSS: Common prefix "AV", semantically belong to analog domain → AVDD and AVSS as providers
-  - AVDDH1/AVSS1: Both contain "1", semantically belong to module 1 → AVDDH1 and AVSS1 as providers
-  - AVDDVCO/AVSSVCO: Both contain "VCO", semantically belong to VCO module → AVDDVCO and AVSSVCO as providers
-  - CVDD/CVSS: Both contain "C", semantically belong to C module → CVDD and CVSS as providers
-  - **Rely on AI's understanding of circuit design naming conventions** and semantic relationships, not pattern extraction or character matching algorithms
-- **If no clear grouping pattern exists**: Use the first major power/ground pair as default providers (e.g., AVDD/AVSS or VDDIB/VSSIB if present)
+  - **ALL other analog power/ground signals** are consumers (PVDD1AC/PVSS1AC), including:
+    - All signals with different names from the selected provider pair
+    - **All duplicate signals with the same name as the provider** (only the first occurrence is provider, all others are consumers)
+    - All analog IO signals (PDB3AC) also connect to this unified voltage domain
+  - Use `PVDD1AC`/`PVSS1AC` for all consumers
+  - Connect TACVSS/TACVDD of ALL analog pads to the selected unified provider pair signal names
+- **CRITICAL - Unified Voltage Domain**: All analog pads share the same voltage domain provider pair, regardless of signal names or positions
 
 **Determine device type:**
-- **Provider** (explicitly mentioned or identified as main provider): `PVDD3AC`/`PVSS3AC`
-- **Consumer** (within range, in same group, or not mentioned): `PVDD1AC`/`PVSS1AC`
+- **Provider** (explicitly mentioned by user, or selected as unified voltage domain provider when user does NOT specify): `PVDD3AC`/`PVSS3AC`
+- **Consumer** (all other analog power/ground signals, or not mentioned): `PVDD1AC`/`PVSS1AC`
 
 **Device Types:**
 - **PVDD1AC/PVSS1AC** (Consumer): Regular analog power/ground, voltage domain consumer
@@ -467,20 +447,20 @@ Present concise plan summary to user.
 - **If user explicitly specifies voltage domain**: **MUST strictly follow user's specification**, do not modify or ask for confirmation
 - User-specified voltage domain range: signals within the range (inclusive, based on signal order) belong to that domain
 - Only explicitly mentioned providers use `PVDD3AC`/`PVSS3AC`
-- **If user does NOT specify voltage domain**: Automatically analyze signal name patterns to identify voltage domain groupings
-  - Group signals with similar base names (e.g., VDDIB/VSSIB, VDDSAR/VSSSAR)
-  - Select main power/ground pairs as providers for each group
+- **If user does NOT specify voltage domain**: AI must select **ONE unified voltage domain** to power **ALL analog pads**
+  - **Do NOT analyze multiple voltage domain groupings** - use a single unified voltage domain
+  - **Use AI semantic understanding** to select the most appropriate power/ground pair as the unified voltage domain provider
+  - **All analog pads** (analog IO, analog power/ground) connect to the same voltage domain provider pair
   - Do NOT ask user for voltage domain information - analyze and determine automatically
-- Signals not mentioned or not in range use `PVDD1AC`/`PVSS1AC`
-- **CRITICAL - Voltage Domain Continuity**: Voltage domains MUST be **contiguous and adjacent** in placement order
-  - Signals belonging to the same voltage domain must form a continuous block
-  - Cannot split voltage domain into disconnected segments (this would prevent proper power supply)
-  - When grouping signals by name patterns, verify they form contiguous blocks in the signal placement order
-  - If signals with similar names are separated by other signals, they belong to different voltage domains
-- **CRITICAL - One Provider Pair Per Domain**: Each voltage domain can have **ONLY ONE pair of providers** (one VDD provider and one VSS provider)
-  - **Even if multiple signals have the same name** (e.g., multiple "AVDDH1" or "AVSS1" signals), **only ONE of them** can be selected as the provider
+- **All analog power/ground signals except the selected provider pair** use `PVDD1AC`/`PVSS1AC` (consumers)
+- **CRITICAL - Unified Voltage Domain**: When user does NOT specify, all analog pads share ONE unified voltage domain provider pair
+  - The selected provider pair powers ALL analog pads regardless of signal names or positions
+  - Only ONE pair of providers (PVDD3AC/PVSS3AC) exists for the entire design
+  - All other analog power/ground signals are consumers (PVDD1AC/PVSS1AC)
+- **CRITICAL - One Provider Pair**: Only ONE pair of providers (one VDD provider and one VSS provider) for the unified voltage domain
+  - **Even if multiple signals have the same name** (e.g., multiple "AVDDH1" or "AVSS1" signals), **only ONE of them** (the first occurrence) can be selected as the provider
   - **Selection rule**: Select the **first occurrence** in placement order as provider, all other signals (including duplicates with the same name) become consumers
-  - **Example**: If a domain has [AVDDH1, AVDDH1, AVSS1, AVSS1], only the first AVDDH1 and first AVSS1 are providers, the second AVDDH1 and second AVSS1 are consumers
+  - **Example**: If AI selects AVDD/AVSS as providers, and there are [AVDD, AVDD, AVSS, AVSS, VDDIB, VSSIB], then only the first AVDD and first AVSS are providers (PVDD3AC/PVSS3AC), all others (including the second AVDD, second AVSS, VDDIB, VSSIB) are consumers (PVDD1AC/PVSS1AC)
 
 ### Pin Configuration Requirements
 - **All analog devices**: MUST include TACVSS/TACVDD fields (mandatory)

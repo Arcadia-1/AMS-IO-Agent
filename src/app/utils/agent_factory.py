@@ -62,7 +62,7 @@ def create_agent(model, final_instructions, show_code_execution: bool = False, c
         stream_outputs=True,
         additional_authorized_imports=[
             'os', 'pathlib', 'io', 'sys', 'subprocess', 
-            'typing', 'posixpath', 'importlib', 'glob', 'json'
+            'typing', 'posixpath', 'ntpath', 'importlib', 'glob', 'json'
         ],
         executor_kwargs={
             "additional_functions": {
