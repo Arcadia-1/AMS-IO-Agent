@@ -1,15 +1,15 @@
 #!/bin/csh -f
-# Combined PEX script supporting multiple processes (28/180)
-# Usage: ./run_pex.csh <library> <topCell> [view] [process] [runDir]
+# Combined PEX script supporting multiple technology nodes (T28/T180)
+# Usage: ./run_pex.csh <library> <topCell> [view] [tech_node] [runDir]
 #   - <library>:   Cadence library name
 #   - <topCell>:   cell name to export and run PEX on
 #   - [view]:      view name for strmout (default: layout)
-#   - [process]:   process node (28 or 180, default from PROCESS_NODE env var)
+#   - [tech_node]: technology node (T28 or T180, default from TECH_NODE env var)
 #   - [runDir]:    run directory (optional, default from PEX_RUN_DIR or output/pex)
 # Example:
 #   ./run_pex.csh LLM_Layout_Design test_PEX
 #   ./run_pex.csh LLM_Layout_Design test_PEX layout
-#   ./run_pex.csh LLM_Layout_Design test_PEX layout 28
+#   ./run_pex.csh LLM_Layout_Design test_PEX layout T28
 
 # Initialize environment
 source /home/cshrc/.cshrc.cadence.IC618SP201
@@ -33,11 +33,15 @@ endif
 
 # Check input arguments
 if ( $#argv < 2 || $#argv > 5 ) then
-    echo "Usage: $0 <library> <topCell> [view] [process] [runDir]"
+    echo "Usage: $0 <library> <topCell> [view] [tech_node] [runDir]"
     echo "  <library>:   Cadence library name"
     echo "  <topCell>:   cell name to export and run PEX on"
     echo "  [view]:      view name for strmout (default: layout)"
-    echo "  [process]:   process node (28 or 180, default: $PROCESS_NODE)"
+    if ( $?TECH_NODE ) then
+        echo "  [tech_node]: technology node (T28 or T180, default: $TECH_NODE)"
+    else
+        echo "  [tech_node]: technology node (T28 or T180, required if TECH_NODE not set)"
+    endif
     echo "  [runDir]:    run directory (optional)"
     exit 1
 endif
@@ -52,15 +56,20 @@ else
     set view = "layout"
 endif
 
-# Determine process node
+# Determine technology node
 if ( $#argv >= 4 ) then
-    set process = "$argv[4]"
+    set tech_node = "$argv[4]"
 else
-    set process = "$PROCESS_NODE"
+    if ( $?TECH_NODE ) then
+        set tech_node = "$TECH_NODE"
+    else
+        echo "Error: Technology node not specified. Please provide [tech_node] argument or set TECH_NODE environment variable."
+        exit 1
+    endif
 endif
 
-# Define variables based on process
-if ( "$process" =~ 180* ) then
+# Define variables based on technology node
+if ( "$tech_node" =~ T180* || "$tech_node" =~ 180* ) then
     if ( $?PDK_LAYERMAP_180 ) then
         set layerMapFile = "$PDK_LAYERMAP_180"
     else
@@ -68,7 +77,12 @@ if ( "$process" =~ 180* ) then
         exit 1
     endif
     set calibreRuleFile = "$CALIBRE_RULE_FILE_180"
-else if ( "$process" =~ 28* ) then
+    if ( ! -f "$calibreRuleFile" ) then
+        echo "Error: PEX rule file not found: $calibreRuleFile"
+        echo "Please ensure the file exists or update CALIBRE_RULE_FILE_180 in env_common.csh"
+        exit 1
+    endif
+else if ( "$tech_node" =~ T28* || "$tech_node" =~ 28* ) then
     if ( $?PDK_LAYERMAP_28 ) then
         set layerMapFile = "$PDK_LAYERMAP_28"
     else
@@ -76,29 +90,70 @@ else if ( "$process" =~ 28* ) then
         exit 1
     endif
     set calibreRuleFile = "$CALIBRE_RULE_FILE_28"
+    if ( ! -f "$calibreRuleFile" ) then
+        echo "Error: PEX rule file not found: $calibreRuleFile"
+        echo "Please ensure the file exists or update CALIBRE_RULE_FILE_28 in env_common.csh"
+        exit 1
+    endif
 else
-    echo "Error: Unsupported process node '$process'. Supported: 28, 180."
+    echo "Error: Unsupported technology node '$tech_node'. Supported: T28, T180."
     exit 1
 endif
 
-echo "[run_pex] PROCESS_NODE='$process' -> using rule file: $calibreRuleFile"
+echo "[run_pex] TECH_NODE='$tech_node' -> using rule file: $calibreRuleFile"
 
-# Check if CDS_LIB_PATH is set
-if ( $?CDS_LIB_PATH ) then
-    set cdsLibPath = "$CDS_LIB_PATH"
-else
-    # Try to read from project .env file
-    if ( -f "$PROJECT_ROOT/.env" ) then
-        set cds_from_env = `grep -E "^CDS_LIB_PATH=" "$PROJECT_ROOT/.env" | sed -e 's/^CDS_LIB_PATH=//'`
-        if ( "$cds_from_env" != "" ) then
-            set cdsLibPath = "$cds_from_env"
+# Check if CDS_LIB_PATH is set (technology node specific first, then fallback)
+if ( "$tech_node" =~ T180* || "$tech_node" =~ 180* ) then
+    # For T180
+    if ( $?CDS_LIB_PATH_180 ) then
+        set cdsLibPath = "$CDS_LIB_PATH_180"
+    else if ( $?CDS_LIB_PATH ) then
+        set cdsLibPath = "$CDS_LIB_PATH"
+    else
+        # Try to read from project .env file
+        if ( -f "$PROJECT_ROOT/.env" ) then
+            set cds_from_env = `grep -E "^CDS_LIB_PATH_180=" "$PROJECT_ROOT/.env" | sed -e 's/^CDS_LIB_PATH_180=//'`
+            if ( "$cds_from_env" != "" ) then
+                set cdsLibPath = "$cds_from_env"
+            else
+                set cds_from_env = `grep -E "^CDS_LIB_PATH=" "$PROJECT_ROOT/.env" | sed -e 's/^CDS_LIB_PATH=//'`
+                if ( "$cds_from_env" != "" ) then
+                    set cdsLibPath = "$cds_from_env"
+                else
+                    echo "Error: CDS_LIB_PATH_180 or CDS_LIB_PATH is not set. Please set it in $PROJECT_ROOT/.env or env_common.csh"
+                    exit 1
+                endif
+            endif
         else
-            echo "Error: CDS_LIB_PATH is not set. Please set it in $PROJECT_ROOT/.env or env_common.csh"
+            echo "Error: CDS_LIB_PATH_180 or CDS_LIB_PATH is not set and $PROJECT_ROOT/.env not found"
             exit 1
         endif
+    endif
+else
+    # For T28
+    if ( $?CDS_LIB_PATH_28 ) then
+        set cdsLibPath = "$CDS_LIB_PATH_28"
+    else if ( $?CDS_LIB_PATH ) then
+        set cdsLibPath = "$CDS_LIB_PATH"
     else
-        echo "Error: CDS_LIB_PATH is not set and $PROJECT_ROOT/.env not found"
-        exit 1
+        # Try to read from project .env file
+        if ( -f "$PROJECT_ROOT/.env" ) then
+            set cds_from_env = `grep -E "^CDS_LIB_PATH_28=" "$PROJECT_ROOT/.env" | sed -e 's/^CDS_LIB_PATH_28=//'`
+            if ( "$cds_from_env" != "" ) then
+                set cdsLibPath = "$cds_from_env"
+            else
+                set cds_from_env = `grep -E "^CDS_LIB_PATH=" "$PROJECT_ROOT/.env" | sed -e 's/^CDS_LIB_PATH=//'`
+                if ( "$cds_from_env" != "" ) then
+                    set cdsLibPath = "$cds_from_env"
+                else
+                    echo "Error: CDS_LIB_PATH_28 or CDS_LIB_PATH is not set. Please set it in $PROJECT_ROOT/.env or env_common.csh"
+                    exit 1
+                endif
+            endif
+        else
+            echo "Error: CDS_LIB_PATH_28 or CDS_LIB_PATH is not set and $PROJECT_ROOT/.env not found"
+            exit 1
+        endif
     endif
 endif
 
@@ -142,6 +197,10 @@ endif
 
 # Create temporary rule file by replacing placeholders
 echo "Creating temporary rule file: $runDir/$tmpRuleFile"
+if ( ! -f "$calibreRuleFile" ) then
+    echo "Error: PEX rule file not found: $calibreRuleFile"
+    exit 1
+endif
 sed -e "s|@LAYOUT_PATH@|${strmFile}|g" \
     -e "s|@LAYOUT_PRIMARY@|${topCell}|g" \
     -e "s|@PEX_NETLIST@|${topCell}.pex.netlist|g" \
@@ -166,6 +225,7 @@ strmout -library $library \
         -layerMap $layerMapFile \
         -logFile $logFile \
         -summaryFile $summaryFile \
+        -cdslib "$cdsLibPath" \
         -runDir $runDir
 
 # Check if XStream Out was successful

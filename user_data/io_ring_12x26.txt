@@ -8,37 +8,52 @@ Task: Generate IO ring schematic and layout design for Cadence Virtuoso.
   ======================================================================
   SIGNAL CONFIGURATION
   ======================================================================
-  Signal names: CVSS AVSS2 AVSS2 AVDDH2 AVDDH2 FVDD FVDDH FVSS VREFP2 VREFN2 VREFPF2 VREFNF2 AVDDH1 AVDDH1 AVSS1 AVSS1 VREFP1 VREFN1 AVDDH0 AVDDH0 AVSS0 AVSS0 VREFP0 VREFN0 VINP VINN VREFN0 VREFP0 AVSS0 AVSS0 AVDDH0 AVDDH0 VREFN1 VREFP1 AVSS1 AVSS1 AVDDH1 AVDDH1 CVSS CLKN CLKP CVDD VREFNF3 VREFPF3 VREFN3 VREFP3 AVDDH3 AVDDH3 AVSS3 AVSS3 FVSS FVDDH FVDD VDDCAL VSSCAL VSSFIFO VDDFIFO DVDD DVSS SDO CLKO FLAG SCKI SEL<0> SEL<1> SEL<2> TRIG RST SDI DVSS DVDD VDDFIFO VSSFIFO VSSSPI VDDSPI CVDD
+  Signal names: AVSS2 AVSS2 AVDDH2 AVDDH2 FVDD FVDDH FVSS IBOTA3 IBOTA1 VREFNF1 VREFPF0 VCM AVDDH1 AVDDH1 AVSS1 AVSS1 VREFP1 VREFN1 AVDDH0 AVDDH0 AVSS0 AVSS0 VREFP0 VREFN0 VINP VINN VREFN0 VREFP0 AVSS0 AVSS0 AVDDH0 AVDDH0 VREFN1 VREFP1 AVSS1 AVSS1 AVDDH1 AVDDH1 CVSS CLKN CLKP CVDD IBF VREFPF2 VREFP2 VREFPF3 VREFP3 AVDDH3 AVDDH3 AVSS3 AVSS3 FVSS FVDDH FVDD VSSFIFO VDDFIFO DVDD DVSS GIOL VIOH SCK SEL<1> TRIG CLKO D<1> D<3> FLAG SDI DVSS DVDD VDDCAL VSSCAL VDDSPI VSSSPI VDDFIFO VSSFIFO
 
   Additionally, please insert inner ring pads:
+  - insert an inner ring pad IBOTA2 between IBOTA3 and IBOTA1
+  - insert an inner ring pad VREFPF0 between IBOTA1 and VREFNF1
+  - insert an inner ring pad IBOTA0 between VREFNF1 and VREFPF0
+  - insert an inner ring pad VREFNF0 between VREFPF0 and VCM
+  - insert an inner ring pad VREFNF2 between IBF and VREFPF2 
+  - insert an inner ring pad VREFN2 between VREFPF2 and VREFP2 
+  - insert an inner ring pad VREFNF3 between VREFP2 and VREFPF3 
+  - insert an inner ring pad VREFN3 between VREFPF3 and VREFP3
   - insert an inner ring pad VREFPF4 between AVSS2 and AVSS2
   - insert an inner ring pad VREFNF4 between AVSS2 and AVDDH2
-  - insert an inner ring pad IBOTA3 between FVSS and VREFP2
-  - insert an inner ring pad IBOTA2 between VREFP2 and VREFN2
-  - insert an inner ring pad IBOTA1 between VREFN2 and VREFPF2      
-  - insert an inner ring pad IBOTA0 between VREFPF2 and VREFNF2 
-  - insert an inner ring pad VREFPF1 between AVSS1 and VREFP1
-  - insert an inner ring pad VREFNF1 between VREFP1 and VREFN1
-  - insert an inner ring pad VCM between VREFN0 and VINP
-  - insert an inner ring pad VREFPF0 between VINN and VREFN0
-  - insert an inner ring pad VREFNF0 between VREFN0 and VREFP0 
-  - insert an inner ring pad IBF between VREFP3 and VREFN3
-  - insert an inner ring pad D<0> between SDO and CLKO
-  - insert an inner ring pad D<1> between CLKO and FLAG
-  - insert an inner ring pad D<2> between FLAG and SCKI
-  - insert an inner ring pad D<3> between SCKI and SEL<0>
-  - insert an inner ring pad D<4> between SEL<0> and SEL<1>
-  - insert an inner ring pad GIOL between SEL<1> and SEL<2>
-  - insert an inner ring pad VIOL between SEL<2> and TRIG
-  - insert an inner ring pad VIOH between TRIG and RST
-  - insert an inner ring pad GIOH between RST and SDI
+  - insert an inner ring pad VIOL between GIOL and VIOH
+  - insert an inner ring pad GIOH between VIOH and SCK
+  - insert an inner ring pad SEL<0> between SCK and SEL<1>
+  - insert an inner ring pad SEL<2> between SEL<1> and TRIG
+  - insert an inner ring pad SDO between TRIG and CLKO
+  - insert an inner ring pad D<0> between CLKO and D<1>  
+  - insert an inner ring pad D<2> between D<1> and D<3>  
+  - insert an inner ring pad D<4> between D<3> and FLAG
+  - insert an inner ring pad RST between FLAG and SDI
+  - insert an inner ring pad VREFPF4 between VDDCAL and VSSCAL
+  - insert an inner ring pad VCM between VSSCAL and VDDSPI
+  - insert an inner ring pad VREFNF4 between VDDSPI and VSSSPI
 
   ======================================================================
   VOLTAGE DOMAIN CONFIGURATION
   ======================================================================
   Voltage domain requirements:
-  - digital signals use digital domain voltage domain (VIOL/GIOL/VIOH/GIOH)
-  - Signals from SDO to SDI (inclusive) are digital pads. All other signals are analog pads.
+  - Digital signals use digital domain voltage domain (VIOL/GIOL/VIOH/GIOH)
+  - Signals from SDO to SDI are digital pads. All other signals are analog pads.
+  - Voltage domain assignments:
+    * Voltage domain AVSS2/AVDDH2: 
+      Left side: AVSS2, AVSS2, AVDDH2, AVDDH2, FVDD, FVDDH, FVSS, IBOTA3, IBOTA1, VREFNF1, VREFPF0, VCM
+      Top side: DVSS, DVDD, VDDCAL, VSSCAL, VDDSPI, VSSSPI, VDDFIFO, VSSFIFO
+      (These pads are connected together because the IO ring is continuous)
+    * Voltage domain AVSS1/VREFP1:
+      Left side: AVDDH1, AVDDH1, AVSS1, AVSS1, VREFP1, VREFN1
+    * Voltage domain AVSS0/AVDDH0:
+      Bottom side: AVDDH0, AVDDH0, AVSS0, AVSS0, VREFP0, VREFN0, VINP, VINN, VREFN0, VREFP0, AVSS0, AVSS0, AVDDH0, AVDDH0
+    * Voltage domain AVSS1/VREFP1:
+      Bottom side: VREFN1, VREFP1, AVSS1, AVSS1, AVDDH1, AVDDH1
+    * Voltage domain AVSS3/AVDDH3:
+      Right side: CVSS, CLKN, CLKP, CVDD, IBF, VREFPF2, VREFP2, VREFPF3, VREFP3, AVDDH3, AVDDH3, AVSS3, AVSS3, FVSS, FVDDH, FVDD, VSSFIFO, VDDFIFO, DVDD, DVSS
+  - Each voltage domain power or ground has two pads, both of them should be PVSS3/PVDD3.
   ======================================================================
   DESIGN CONFIGURATION
   ======================================================================

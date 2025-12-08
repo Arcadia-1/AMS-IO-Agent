@@ -78,3 +78,4 @@ getDeviceTemplate("tphn28hpcpgv18" "PVSS2DGZ_H_G" "symbol")
 
 printf("Batch template extraction completed!\n")
 t
+

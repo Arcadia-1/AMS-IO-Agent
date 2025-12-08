@@ -151,12 +151,12 @@ def run_lvs_va(lib: Optional[str] = None, cell: Optional[str] = None, view: str 
         if tech_node not in ["T28", "T180"]:
             return f"❌ Error: Invalid tech_node '{tech_node}'. Must be 'T28' or 'T180'"
         
-        # Get script path based on tech_node
-        script_path = Path(f"src/scripts/calibre/{tech_node}/run_lvs_{tech_node}.csh")
+        # Use unified script at top level
+        script_path = Path("src/scripts/calibre/run_lvs.csh")
         
         # Check if script exists
         if not script_path.exists():
-            return f"❌ Error: LVS script file not found: {script_path} (tech_node: {tech_node})"
+            return f"❌ Error: LVS script file not found: {script_path}"
         
         # Ensure script has execution permissions
         script_path.chmod(0o755)
@@ -175,8 +175,8 @@ def run_lvs_va(lib: Optional[str] = None, cell: Optional[str] = None, view: str 
         
         # Execute csh script using bridge_utils
         try:
-            # Note: run_lvs.csh expects arguments in order: <library> <topCell> [view]
-            result = execute_csh_script(str(script_path), lib, cell, view, timeout=300)
+            # Note: run_lvs.csh expects arguments in order: <library> <topCell> [view] [tech_node]
+            result = execute_csh_script(str(script_path), lib, cell, view, tech_node, timeout=300)
             
             if result and not result.startswith("Remote csh execution failed"):
                 # Generate report filename with timestamp
@@ -244,12 +244,12 @@ def run_lvs(cell: Optional[str] = None, lib: Optional[str] = None, view: str = "
         if tech_node not in ["T28", "T180"]:
             return f"❌ Error: Invalid tech_node '{tech_node}'. Must be 'T28' or 'T180'"
         
-        # Get script path based on tech_node
-        script_path = Path(f"src/scripts/calibre/{tech_node}/run_lvs_{tech_node}.csh")
+        # Use unified script at top level
+        script_path = Path("src/scripts/calibre/run_lvs.csh")
         
         # Check if script exists
         if not script_path.exists():
-            return f"❌ Error: LVS script file not found: {script_path} (tech_node: {tech_node})"
+            return f"❌ Error: LVS script file not found: {script_path}"
         
         # Ensure script has execution permissions
         script_path.chmod(0o755)
