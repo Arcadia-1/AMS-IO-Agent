@@ -309,11 +309,12 @@ Present concise plan summary to user.
 **CRITICAL - All Digital Domain Pads Must Have 4 Pin Connections:**
 - **EVERY digital domain pad** (including digital IO PDDW16SDGZ and digital power/ground PVDD1DGZ/PVSS1DGZ/PVDD2POC/PVSS2DGZ) **MUST have EXACTLY 4 pin_connection entries**:
   - `VDD`: connects to low voltage power signal
-  - `VSS`: connects to low voltage ground signal
+  - `VSS`: connects to low voltage ground signal (MUST use the same signal name as all other pads' VSS pin_connection in the entire IO ring)
   - `VDDPST`: connects to high voltage power signal
   - `VSSPST`: connects to high voltage ground signal
 - **This applies to ALL digital pads, regardless of whether they are voltage domain providers or digital IO**
 - **Do NOT omit any pin** - all 4 pins are mandatory for every digital domain pad
+- **CRITICAL - VSS Pin Consistency**: The `VSS` pin_connection label must be **identical to the VSS pin_connection used by all analog pads** in the IO ring (the digital domain low voltage VSS provider signal name)
 
 #### Digital Domain Power/Ground
 - **Standard domain**: `PVDD1DGZ` (standard digital power), `PVSS1DGZ` (standard digital ground)
@@ -530,10 +531,13 @@ Present concise plan summary to user.
 
 ### Configuration Examples
 
-**CRITICAL - Analog Signal VSS Pin Connection**: 
-- The `VSS` pin of all analog devices (PDB3AC, PVDD1AC, PVSS1AC, PVDD3AC, PVSS3AC, PVDD3A, PVSS3A) **MUST connect to the digital domain low voltage VSS provider signal**
-- If user specifies digital domain provider names, use the user-specified low voltage VSS signal name
-- If user does not specify, use the default digital low voltage VSS signal name
+**CRITICAL - VSS Pin Connection for ALL Pads (Universal Rule)**:
+- **ALL pads in the IO ring** (analog devices: PDB3AC, PVDD1AC, PVSS1AC, PVDD3AC, PVSS3AC, PVDD3A, PVSS3A; digital devices: PDDW16SDGZ, PVDD1DGZ, PVSS1DGZ, PVDD2POC, PVSS2DGZ) **MUST connect their `VSS` pin to the SAME digital domain low voltage VSS provider signal name**
+- **CRITICAL - Consistency Requirement**: The `VSS` pin_connection label must be **identical across ALL pads** in the entire IO ring
+- **Signal name determination**:
+  - If user specifies digital domain provider names, use the user-specified low voltage VSS signal name (e.g., "IOVSS" if user specifies "VSS/IOVSS/IOVDDL/IOVDDH")
+  - If user does not specify, use the default digital low voltage VSS signal name (e.g., "GIOL")
+- **Do NOT mix different signal names** for VSS pin_connection across different pads - this will cause connectivity errors
 
 #### Analog IO (PDB3AC)
 **Regular signal (no `<>`):**
@@ -752,9 +756,12 @@ Present concise plan summary to user.
   - **PVSS3A**: TAVSS → own signal name, TAVDD → corresponding power signal
   - Similar to PVDD3AC/PVSS3AC but uses TAVDD/TAVSS instead of TACVDD/TACVSS
 - **All digital IO devices**: MUST include `direction` field at top level (mandatory)
+- **CRITICAL - All digital domain pads pin_connection**: **EVERY digital domain pad** (digital IO PDDW16SDGZ and digital power/ground PVDD1DGZ/PVSS1DGZ/PVDD2POC/PVSS2DGZ) **MUST have EXACTLY 4 pin_connection entries**: VDD, VSS, VDDPST, VSSPST (no AIO field, no exceptions)
 - **Digital IO pin_connection**: ONLY VDD/VSS/VDDPST/VSSPST (no AIO field)
+- **Digital power/ground pin_connection**: ONLY VDD/VSS/VDDPST/VSSPST (same as digital IO, all 4 pins required)
 - **Digital IO C/I pins**: Automatically connect to `{signal_name}_CORE` net (handled by schematic generator)
   - Signals with `<>`: Format as `{prefix}_CORE<{index}>` (e.g., "D<0>" → "D_CORE<0>")
+- **CRITICAL - VSS Pin Consistency Across Entire IO Ring**: **ALL pads** (analog and digital) **MUST use the SAME signal name for their VSS pin_connection** - this must be the digital domain low voltage VSS provider signal name. The VSS pin_connection label must be identical across all pads in the entire IO ring to ensure proper connectivity.
 - **Each device type**: Follow device-specific pin requirements exactly
 
 ### User-Specified Names
