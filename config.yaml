@@ -38,7 +38,7 @@ interface:
   mode: "cli"
 
   # Save conversation logs to files
-  logging: true
+  logging: false
 
   # Show detailed code execution blocks in output
   show_code: false

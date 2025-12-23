@@ -120,7 +120,8 @@ def run_latest_file(quiet=False, lib=None, cell=None, view="layout"):
             if lib and cell:
                 result = run_il_file(str(latest_file), lib=lib, cell=cell, view=view)
             else:
-                result = run_il_file(str(latest_file))
+                # Use default values when lib and cell are not provided
+                result = run_il_file(str(latest_file), lib="TestLib", cell="TestCell", view=view)
             assert isinstance(result, str), "run_il_file should return a string"
             print(f"   🚀 {result}")
             return True
@@ -154,7 +155,8 @@ def run_latest_file_with_screenshot(quiet=False, lib=None, cell=None, view="layo
             if lib and cell:
                 result = run_il_with_screenshot(str(latest_file), lib=lib, cell=cell, view=view)
             else:
-                result = run_il_with_screenshot(str(latest_file))
+                # Use default values when lib and cell are not provided
+                result = run_il_with_screenshot(str(latest_file), lib="TestLib", cell="TestCell", view=view)
             
             # Parse JSON result
             if not isinstance(result, str):
@@ -192,7 +194,8 @@ def run_selected_file(file_path, quiet=False, lib=None, cell=None, view="layout"
     if lib and cell:
         result = run_il_file(str(file_path), lib=lib, cell=cell, view=view)
     else:
-        result = run_il_file(str(file_path))
+        # Use default values when lib and cell are not provided
+        result = run_il_file(str(file_path), lib="TestLib", cell="TestCell", view=view)
     print(f"   🚀 {result}")
     return True
 
