@@ -120,6 +120,9 @@ venv.bak/
 # Jupyter Notebook
 .ipynb_checkpoints
 
+# Gradio cache and runtime files
+.gradio/
+
 # Project-specific ignore files
 # If you have specific files to ignore, add them here
  
